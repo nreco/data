@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{42A98B2C-6070-4CDC-A760-795CC1BE66B1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NReco.Data</RootNamespace>
+    <AssemblyName>NReco.Data</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET_STANDARD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+    <!-- A reference to the entire .NET Framework is automatically included -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DbCommandBuilder.cs" />
+    <Compile Include="DbCommandBuilderExtensions.cs" />
+    <Compile Include="DbSqlExpressionBuilder.cs" />
+    <Compile Include="DbFactory.cs" />
+    <Compile Include="IDbCommandBuilder.cs" />
+    <Compile Include="IDbFactory.cs" />
+    <Compile Include="ISqlExpressionBuilder.cs" />
+    <Compile Include="NetStandardCompatibility.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Query\IQueryValue.cs" />
+    <Compile Include="Query\ListSortDirection.cs" />
+    <Compile Include="Query\QConst.cs" />
+    <Compile Include="Query\QField.cs" />
+    <Compile Include="Query\QRawSql.cs" />
+    <Compile Include="Query\QSort.cs" />
+    <Compile Include="Query\QTable.cs" />
+    <Compile Include="Query\Query.cs" />
+    <Compile Include="Query\QConditionNode.cs" />
+    <Compile Include="Query\QGroupNode.cs" />
+    <Compile Include="Query\QNegationNode.cs" />
+    <Compile Include="Query\QNode.cs" />
+    <Compile Include="Query\QRawSqlNode.cs" />
+    <Compile Include="Query\QVar.cs" />
+    <Compile Include="Relex\RelexBuilder.cs" />
+    <Compile Include="Relex\RelexParser.cs" />
+    <Compile Include="StringTemplate.cs" />
+    <Compile Include="SqlExpressionBuilder.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

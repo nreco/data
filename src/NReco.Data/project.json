@@ -1,0 +1,43 @@
+﻿{
+  "version": "1.0.0-alpha",
+  "title": "NReco.Data",
+  "description": "Lightweight data access components for generating SQL commands by db-independent queries.",
+  "authors": [ "Vitalii Fedorchenko" ],
+  "copyright": "Copyright (c) 2016 Vitalii Fedorchenko",
+  "packOptions": {
+    "owners": [ "Vitalii Fedorchenko" ],
+    "projectUrl": "http://www.nrecosite.com/dalc_net.aspx",
+    "tags": [ "data", "relex", "sql", "query", "generator", "ado.net", "database", "DAL" ],
+    "licenseUrl": "https://raw.githubusercontent.com/nreco/data/master/LICENSE",
+    "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
+  },
+
+  "supports": {},
+  "dependencies": {
+  },
+  "frameworks": {
+    "net40": {
+      "frameworkAssemblies": {
+        "System.Data": ""
+      },
+      "buildOptions": {
+        "define": []
+      }
+    },
+    "netstandard1.5": {
+
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "System.Data.Common": "4.1.0",
+        "System.Reflection": "4.1.0",
+        "System.Reflection.Primitives": "4.0.1",
+        "System.Threading": "4.0.11",
+        "System.Threading.Tasks": "4.0.11"
+      },
+      "buildOptions": {
+        "define": [ "NET_STANDARD" ]
+      }
+
+    }
+  }
+}
