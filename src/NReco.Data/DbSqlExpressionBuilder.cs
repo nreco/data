@@ -64,21 +64,22 @@ namespace NReco.Data
 		protected override string BuildValue(QConst value) {
 			object constValue = value.Value;
 				
-			// special processing for arrays
+			// keep special processing for lists
 			if (constValue is IList)
 				return BuildValue( (IList)constValue );
-									
-			return BuildCommandParameter(constValue);
-		}		
-		
-		protected override string BuildValue(string str) {
-			return BuildCommandParameter( str );
+			
+			// all constants are passed as parameters						
+			var cmdParam = DbFactory.AddCommandParameter(Command,constValue);
+			if (value is QVar) {
+				cmdParam.Parameter.ParameterName = ((QVar)value).Name;
+			}
+			return cmdParam.Placeholder;
 		}
 		
-		public string BuildCommandParameter(object value) {
-			//if (value is DataColumn) return ((DataColumn)value).ColumnName;
-			return DbFactory.AddCommandParameter(Command,value);
-		}	
+		protected override string BuildValue(string str) {
+			return DbFactory.AddCommandParameter(Command,str).Placeholder;
+		}
+		
 		
 	}
 }

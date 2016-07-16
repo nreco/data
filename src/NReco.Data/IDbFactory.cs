@@ -15,6 +15,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Collections.Generic;
 
 namespace NReco.Data
 {
@@ -37,7 +38,7 @@ namespace NReco.Data
 		/// <summary>
 		/// Add new constant parameter
 		/// </summary>
-		string AddCommandParameter(IDbCommand cmd, object value);
+		CommandParameter AddCommandParameter(IDbCommand cmd, object value);
 
 		/// <summary>
 		/// Creare SQL builder
@@ -48,6 +49,16 @@ namespace NReco.Data
 		/// Get ID of last inserted record
 		/// </summary>
 		object GetInsertId(IDbConnection connection);
+	}
+
+	public sealed class CommandParameter {
+		public string Placeholder { get; private set; }
+		public IDbDataParameter Parameter { get; private set; }
+
+		public CommandParameter(string placeholder, DbParameter dbParam) {
+			Placeholder = placeholder;
+			Parameter = dbParam;
+		}
 	}
 
 }

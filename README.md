@@ -3,10 +3,11 @@ Lightweight data access components for generating SQL commands by db-independent
 
 * abstract query structure
 * implements DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands 
-* best for dynamic DB queries or when DB schema is unknown  
+* best for schema-less DB access, dynamic DB queries and user-defined filters 
 * fills the gap between minimalistic .NET Core (corefx) System.Data and rich EF Core 
 * parser for compact string query representation (relex)
 * can be used with any existing ADO.NET data provider
+* supports both full .NET Framework 4.x and .NET Core (netstandard1.5)
 
 ## How to use 	
 **SqlClient**:

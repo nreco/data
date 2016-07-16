@@ -34,7 +34,19 @@ namespace NReco.Data {
 
 		public string ParamNameFormat { get; set; } = "@p{0}";
 
-		public string LastInsertIdSelectText { get; set; } //= "SELECT @@IDENTITY";
+		/// <summary>
+		/// Gets or sets SQL command for retrieving ID for last inserted row.
+		/// </summary>
+		/// <remarks>
+		/// LastInsertIdSelectText for popular databases:
+		/// <list>
+		/// <item>MsSql (System.Data.SqlClient): "SELECT @@IDENTITY"</item>
+		/// <item>Sqlite (Microsoft.Data.Sqlite): "SELECT last_insert_rowid()"</item>
+		/// <item>PostgreSql (Npgsql): "SELECT lastval()"</item>
+		/// <item>MySql (MySql.Data): "SELECT LAST_INSERT_ID()"</item>
+		/// </list>
+		/// </remarks>
+		public string LastInsertIdSelectText { get; set; }
 
 		public DbFactory(DbProviderFactory dbProviderFactory) {
 			DbPrvFactory = dbProviderFactory;
@@ -52,12 +64,12 @@ namespace NReco.Data {
 			return DbPrvFactory.CreateConnection();
 		}
 
-		public string AddCommandParameter(IDbCommand cmd, object value) {
+		public CommandParameter AddCommandParameter(IDbCommand cmd, object value) {
 			var param = DbPrvFactory.CreateParameter();
 			param.ParameterName = String.Format(ParamNameFormat, cmd.Parameters.Count);
 			param.Value = value ?? DBNull.Value;
 			cmd.Parameters.Add(param);
-			return GetCmdParameterPlaceholder(param.ParameterName);
+			return new CommandParameter( GetCmdParameterPlaceholder(param.ParameterName), param );
 		}
 
 		public virtual ISqlExpressionBuilder CreateSqlBuilder(IDbCommand dbCommand, Func<Query,string> buildSubquery) {
