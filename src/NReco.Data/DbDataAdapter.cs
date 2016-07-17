@@ -58,29 +58,27 @@ namespace NReco.Data {
 			if (Transaction!=null)
 				cmd.Transaction = Transaction;
 		}
-		
+
 		/// <summary>
 		/// Returns prepared select query. 
 		/// </summary>
-		/// <typeparam name="T">result type</typeparam>
 		/// <param name="q">query to execute</param>
 		/// <returns>prepared select query</returns>
-		public SelectQuery<T> Select<T>(Query q) {
+		public SelectQuery Select(Query q) {
 			var selectCmd = CommandBuilder.GetSelectCommand(q);
 			InitCmd(selectCmd);
-			return new SelectQuery<T>(this, selectCmd, q, null);
+			return new SelectQuery(this, selectCmd, q, null);
 		}
 
 		/// <summary>
 		/// Returns prepared select query with POCO-model fields mapping configuration. 
 		/// </summary>
-		/// <typeparam name="T">POCO model type</typeparam>
 		/// <param name="q">query to execute</param>
 		/// <returns>prepared select query</returns>
-		public SelectQuery<T> Select<T>(Query q, IDictionary<string,string> fieldToPropertyMap) where T : class {
+		public SelectQuery Select(Query q, IDictionary<string,string> fieldToPropertyMap) {
 			var selectCmd = CommandBuilder.GetSelectCommand(q);
 			InitCmd(selectCmd);
-			return new SelectQuery<T>(this, selectCmd, q, fieldToPropertyMap);
+			return new SelectQuery(this, selectCmd, q, fieldToPropertyMap);
 		}
 
 		public int Insert(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
@@ -125,7 +123,7 @@ namespace NReco.Data {
 			return affectedRecords;
 		}
 
-		public class SelectQuery<T> {
+		public class SelectQuery {
 			DbDataAdapter Adapter;
 			IDbCommand SelectCommand;
 			Query Query;
@@ -142,12 +140,12 @@ namespace NReco.Data {
 			/// Returns the first record from the query results. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public T First() {
+			public T First<T>() {
 				T result = default(T);
 				var resTypeCode = Type.GetTypeCode(typeof(T));
 				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, Query.RecordOffset, 1, 
 					(rdr) => {
-						result = Read(resTypeCode, rdr);
+						result = Read<T>(resTypeCode, rdr);
 					} );
 				return result;
 			}
@@ -169,17 +167,17 @@ namespace NReco.Data {
 			/// Returns a list with all query results.
 			/// </summary>
 			/// <returns>list with query results</returns>
-			public List<T> ToList() {
+			public List<T> ToList<T>() {
 				var result = new List<T>();
 				var resTypeCode = Type.GetTypeCode(typeof(T));
 				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, Query.RecordOffset, Query.RecordCount,
 					(rdr) => {
-						result.Add( Read(resTypeCode, rdr) );
+						result.Add( Read<T>(resTypeCode, rdr) );
 					} );
 				return result;
 			}
 
-			private T ChangeType(object o, TypeCode typeCode) {
+			private T ChangeType<T>(object o, TypeCode typeCode) {
 				return (T)Convert.ChangeType( o, typeCode, System.Globalization.CultureInfo.InvariantCulture );
 			}
 
@@ -190,13 +188,13 @@ namespace NReco.Data {
 				return dictionary;
 			}
 
-			private T Read(TypeCode typeCode, IDataReader rdr) {
+			private T Read<T>(TypeCode typeCode, IDataReader rdr) {
 				// handle primitive single-value result
 				if (typeCode!=TypeCode.Object) {
 					if (rdr.FieldCount==1) {
-						return ChangeType( rdr[0], typeCode);
+						return ChangeType<T>( rdr[0], typeCode);
 					} else if (Query.Fields!=null && Query.Fields.Length>0) {
-						return ChangeType( rdr[Query.Fields[0].Name], typeCode);
+						return ChangeType<T>( rdr[Query.Fields[0].Name], typeCode);
 					} else {
 						return default(T);
 					}
