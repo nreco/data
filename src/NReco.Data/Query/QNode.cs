@@ -48,8 +48,7 @@ namespace NReco.Data
 			res.Nodes.Add(node1);
 			res.Nodes.Add(node2);
 			return res;
-		}
-
+		}	
 
 
 	}

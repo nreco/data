@@ -46,8 +46,10 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataHelper.cs" />
     <Compile Include="DbCommandBuilder.cs" />
     <Compile Include="DbCommandBuilderExtensions.cs" />
+    <Compile Include="DbDataAdapter.cs" />
     <Compile Include="DbSqlExpressionBuilder.cs" />
     <Compile Include="DbFactory.cs" />
     <Compile Include="IDbCommandBuilder.cs" />

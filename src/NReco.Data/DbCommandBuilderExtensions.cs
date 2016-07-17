@@ -28,38 +28,24 @@ namespace NReco.Data {
 	/// </summary>
 	public static class DbCommandBuilderExtensions {
 
-		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(IDictionary<string,object> data) {
-			if (data == null)
-				yield break;
-			foreach (var entry in data) {
-				var qVal = entry.Value is IQueryValue ? (IQueryValue)entry.Value : new QConst(entry.Value);
-				yield return new KeyValuePair<string, IQueryValue>( entry.Key, qVal );
-			}
-		}
-
-		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(object o) {
-			if (o == null)
-				yield break;
-			var oType = o.GetType();
-			foreach (var p in oType.GetProperties()) {
-				var pVal = p.GetValue(o, null);
-				var qVal = pVal is IQueryValue ? (IQueryValue)pVal : new QConst(pVal);
-				yield return new KeyValuePair<string, IQueryValue>( p.Name, qVal );
-			}
-		}
-
-		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, IDictionary<string,object> data) {
-			return cmdBuilder.GetUpdateCommand(q, GetChangeset(data) );
+		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, IDictionary data) {
+			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(data) );
 		}
 		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, object poco) {
-			return cmdBuilder.GetUpdateCommand(q, GetChangeset(poco) );
+			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(poco, null) );
+		}
+		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, object poco, IDictionary<string,string> propertyToFieldMap) {
+			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(poco, propertyToFieldMap) );
 		}
 
-		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, IDictionary<string,object> data) {
-			return cmdBuilder.GetInsertCommand(table, GetChangeset(data) );
+		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, IDictionary data) {
+			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(data) );
 		}
 		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, object poco) {
-			return cmdBuilder.GetInsertCommand(table, GetChangeset(poco) );
+			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(poco, null) );
+		}
+		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, object poco, IDictionary<string,string> propertyToFieldMap) {
+			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(poco, propertyToFieldMap) );
 		}
 
 	}

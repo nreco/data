@@ -155,6 +155,32 @@ namespace NReco.Data
 		}
 
 		/// <summary>
+		/// Finds all QVar constants ("name":var in relex) and passes them to specified set handler.
+		/// </summary>
+		/// <param name="setVar">handler for <see cref="QVar"/> constants.</param>
+		/// <example>
+		/// The following code unsets all query variables:
+		/// <code>
+		/// </code>
+		/// </example>
+		public void SetVars(Action<QVar> setVar) {
+			SetVarsInternal(Condition, setVar);
+		}
+
+		private void SetVarsInternal(QNode node, Action<QVar> setVar) {
+			if (node is QConditionNode) {
+				var cndNode = (QConditionNode)node;
+				if (cndNode.LValue is QVar)
+					setVar( (QVar) cndNode.LValue);
+				if (cndNode.RValue is QVar)
+					setVar( (QVar) cndNode.RValue);
+			}
+			if (node != null)
+				foreach (var cNode in node.Nodes)
+					SetVarsInternal(cNode, setVar);
+		}
+
+		/// <summary>
 		/// Returns a string that represents current query in relex format
 		/// </summary>
 		/// <returns>relex string</returns>

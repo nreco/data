@@ -62,6 +62,10 @@ namespace NReco.Data {
 			return new QConst(value);
 		}
 
+		public static explicit operator QConst(long value) {
+			return new QConst(value);
+		}
+
 		public static explicit operator QConst(float value) {
 			return new QConst(value);
 		}
@@ -88,6 +92,34 @@ namespace NReco.Data {
 
 		public static explicit operator QConst(bool value) {
 			return new QConst(value);
+		}
+
+		public static QConditionNode operator ==(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.Equal, rvalue );
+		}		
+
+		public static QConditionNode operator !=(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.Equal|Conditions.Not, rvalue );
+		}		
+
+		public static QConditionNode operator <(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.LessThan, rvalue );
+		}		
+
+		public static QConditionNode operator >(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.GreaterThan, rvalue );
+		}		
+
+		public static QConditionNode operator >=(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.GreaterThan|Conditions.Equal, rvalue );
+		}		
+
+		public static QConditionNode operator <=(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.LessThan|Conditions.Equal, rvalue );
+		}		
+
+		public static QConditionNode operator %(QConst lvalue, IQueryValue rvalue) {
+			return new QConditionNode( lvalue, Conditions.Like, rvalue );
 		}
 
 	}

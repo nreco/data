@@ -26,7 +26,27 @@ namespace NReco.Data {
 		internal static PropertyInfo[] GetProperties(this Type t) {
 			return t.GetTypeInfo().GetProperties();
 		} 
-
+		internal static PropertyInfo GetProperty(this Type t, string propName) {
+			return t.GetTypeInfo().GetProperty(propName);
+		}
+		internal static bool IsAssignableFrom(this Type t, Type fromType) {
+			return t.GetTypeInfo().IsAssignableFrom(fromType.GetTypeInfo());
+		}
+		internal static bool _IsValueType(this Type t) {
+			return t.GetTypeInfo().IsValueType;
+		}
+		internal static bool _IsEnum(this Type t) {
+			return t.GetTypeInfo().IsEnum;
+		}
+	}
+#else
+	internal static class Net40Compatibility {
+		internal static bool _IsValueType(this Type t) {
+			return t.IsValueType;
+		}
+		internal static bool _IsEnum(this Type t) {
+			return t.IsEnum;
+		}
 	}
 #endif
 

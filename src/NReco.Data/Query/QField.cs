@@ -99,14 +99,14 @@ namespace NReco.Data
 		}
 		
 		public static QConditionNode operator ==(QField lvalue, IQueryValue rvalue) {
-			if (rvalue == null || ((rvalue is QConst) && ((QConst)rvalue).Value == null)) {
+			if (rvalue == null || ((rvalue is QConst && !(rvalue is QVar)) && DataHelper.IsNullOrDBNull( ((QConst)rvalue).Value ) )) {
 				return new QConditionNode(lvalue, Conditions.Null, null);
 			}
 			return new QConditionNode( lvalue, Conditions.Equal, rvalue );
 		}		
 
 		public static QConditionNode operator !=(QField lvalue, IQueryValue rvalue) {
-			if (rvalue == null || ((rvalue is QConst) && ((QConst)rvalue).Value == null)) {
+			if (rvalue == null || ((rvalue is QConst && !(rvalue is QVar)) && DataHelper.IsNullOrDBNull( ((QConst)rvalue).Value ) )) {
 				return new QConditionNode(lvalue, Conditions.Null|Conditions.Not, null);
 			}
 			return new QConditionNode( lvalue, Conditions.Equal|Conditions.Not, rvalue );
@@ -132,6 +132,7 @@ namespace NReco.Data
 			return new QConditionNode( lvalue, Conditions.Like, rvalue );
 		}		
 		
+		public static readonly QField Count = new QField("cnt", "count(*)");
 		
 	}
 }
