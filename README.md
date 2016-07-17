@@ -26,6 +26,7 @@ var deleteCmd = dbCmdBuilder.GetDeleteCommand( new Query("Employees", (QField)"N
 var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
 	LastInsertIdSelectText = "SELECT last_insert_rowid()"
 };
+```
 **DbDataAdapter** - provides simple interface for CRUD-operations:
 ```
 var dbConnection = dbFactory.CreateConnection();
@@ -37,6 +38,7 @@ var employeeDictionary = dbAdapter.Select(
 		new Query("Employees", (QField)"EmployeeID"==(QConst)newEmployee.EmployeeID ).Select("FirstName","LastName") 
 	).ToDictionary();
 ```
+
 **Relex** - compact query expressions:
 ```
 var relexParser = new NReco.Data.Relex.RelexParser();
