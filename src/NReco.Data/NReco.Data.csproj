@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataHelper.cs" />
+    <Compile Include="DbBatchCommandBuilder.cs" />
     <Compile Include="DbCommandBuilder.cs" />
     <Compile Include="DbCommandBuilderExtensions.cs" />
     <Compile Include="DbDataAdapter.cs" />

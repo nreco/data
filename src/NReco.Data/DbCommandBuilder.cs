@@ -16,9 +16,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Diagnostics;
-using System.ComponentModel;
 using System.Text;
 
 namespace NReco.Data
@@ -119,16 +116,23 @@ namespace NReco.Data
 			return sqlBuilder;
 		}
 
+		protected virtual IDbCommand GetCommand() {
+			return DbFactory.CreateCommand();
+		}
+
+		protected virtual void SetCommandText(IDbCommand cmd, string sqlStatement) {
+			cmd.CommandText = sqlStatement;
+		}
+
 		/// <summary>
 		/// Gets the automatically generated <see cref="IDbCommand"/> object to select rows by specified <see cref="Query"/>.
 		/// </summary>
 		/// <param name="query">query that determines table and select options</param>
 		/// <returns></returns>
 		public virtual IDbCommand GetSelectCommand(Query query) {
-			var cmd = DbFactory.CreateCommand();
+			var cmd = GetCommand();
 			var cmdSqlBuilder = GetSqlBuilder(cmd);
-
-			cmd.CommandText = BuildSelectInternal(query, cmdSqlBuilder, false);
+			SetCommandText(cmd,BuildSelectInternal(query, cmdSqlBuilder, false));
 			return cmd;
 		}
 
@@ -200,20 +204,20 @@ namespace NReco.Data
 		/// <param name="query">query that determines delete table and conditions</param>
 		/// <returns>delete SQL command</returns>	
 		public virtual IDbCommand GetDeleteCommand(Query query) {
-			var cmd = DbFactory.CreateCommand();
+			var cmd = GetCommand();
 			var dbSqlBuilder = GetSqlBuilder(cmd);
 
 			// prepare WHERE part
 			var whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
 			
 			var deleteTpl = new StringTemplate(DeleteTemplate);
-			cmd.CommandText = deleteTpl.FormatTemplate( (varName) => {
+			SetCommandText(cmd, deleteTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(query.Table);
 					case "where": return new StringTemplate.TokenResult(whereExpression);
 				}
 				return StringTemplate.TokenResult.NotDefined;
-			});
+			}) );
 
 			return cmd;
 		}
@@ -225,7 +229,7 @@ namespace NReco.Data
 		/// <param name="data">changeset data</param>
 		/// <returns>update SQL command</returns>	
 		public virtual IDbCommand GetUpdateCommand(Query query, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
-			var cmd = DbFactory.CreateCommand();
+			var cmd = GetCommand();
 			var dbSqlBuilder = GetSqlBuilder(cmd);
 
 			// prepare fields Part
@@ -244,14 +248,14 @@ namespace NReco.Data
 			string whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
 			
 			var updateTpl = new StringTemplate(UpdateTemplate);
-			cmd.CommandText = updateTpl.FormatTemplate( (varName) => {
+			SetCommandText(cmd, updateTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(query.Table);
 					case "set": return new StringTemplate.TokenResult(setExpression.ToString());
 					case "where": return new StringTemplate.TokenResult(whereExpression);
 				}
 				return StringTemplate.TokenResult.NotDefined;
-			});
+			}) );
 			
 			return cmd;
 		}
@@ -263,7 +267,7 @@ namespace NReco.Data
 		/// <param name="data">new record data</param>
 		/// <returns>insert SQL command</returns>	
 		public virtual IDbCommand GetInsertCommand(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
-			var cmd = DbFactory.CreateCommand();
+			var cmd = GetCommand();
 			var dbSqlBuilder = GetSqlBuilder(cmd);
 			
 			// Prepare fields part
@@ -280,14 +284,14 @@ namespace NReco.Data
 			}
 
 			var insertTpl = new StringTemplate(InsertTemplate);
-			cmd.CommandText = insertTpl.FormatTemplate( (varName) => {
+			SetCommandText(cmd, insertTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(tableName);
 					case "columns": return new StringTemplate.TokenResult(columns.ToString());
 					case "values": return new StringTemplate.TokenResult(values);
 				}
 				return StringTemplate.TokenResult.NotDefined;
-			});
+			}) );
 			
 			return cmd;
 		}

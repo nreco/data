@@ -2,8 +2,9 @@
 Lightweight data access components for generating SQL commands by dynamic queries, mapping results to strongly typed POCO models or dictionaries, CRUD-operations. 
 
 * abstract Query structure
-* DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands 
-* DbDataAdapter for CRUD-operations
+* DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
+* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand instance (batch inserts, updates)
+* DbDataAdapter for CRUD-operations, can map query results to objects, insert/update by objects
 * best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 
 * parser for compact string query representation (relex)
