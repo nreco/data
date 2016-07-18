@@ -44,6 +44,11 @@ namespace NReco.Data {
 		public IDbTransaction Transaction { get; private set; }
 
 		/// <summary>
+		/// Gets or sets flag that determines whether query record offset is applied during reading query results.
+		/// </summary>
+		public bool ApplyOffset { get; set; } = true;
+
+		/// <summary>
 		/// Initializes a new instance of the DbDataAdapter.
 		/// </summary>
 		/// <param name="connection">database connection instance</param>
@@ -136,6 +141,12 @@ namespace NReco.Data {
 				FieldToPropertyMap = fldToPropMap;
 			}
 
+			int DataReaderRecordOffset {
+				get {
+					return Adapter.ApplyOffset ? Query.RecordOffset : 0;
+				}
+			}
+
 			/// <summary>
 			/// Returns the first record from the query results. 
 			/// </summary>
@@ -143,7 +154,7 @@ namespace NReco.Data {
 			public T First<T>() {
 				T result = default(T);
 				var resTypeCode = Type.GetTypeCode(typeof(T));
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, Query.RecordOffset, 1, 
+				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
 					(rdr) => {
 						result = Read<T>(resTypeCode, rdr);
 					} );
@@ -156,7 +167,7 @@ namespace NReco.Data {
 			/// <returns>dictionary with field values or null if query returns zero records.</returns>
 			public Dictionary<string,object> ToDictionary() {
 				Dictionary<string,object> result = null;
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, Query.RecordOffset, 1, 
+				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
 					(rdr) => {
 						result = ReadDictionary(rdr);
 					} );
@@ -170,7 +181,7 @@ namespace NReco.Data {
 			public List<T> ToList<T>() {
 				var result = new List<T>();
 				var resTypeCode = Type.GetTypeCode(typeof(T));
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, Query.RecordOffset, Query.RecordCount,
+				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
 					(rdr) => {
 						result.Add( Read<T>(resTypeCode, rdr) );
 					} );
