@@ -24,6 +24,9 @@ namespace NReco.Data {
 	/// <summary>
 	/// Generic <see cref="IDbFactory"/> implementation that may be used with most ADO.NET Data Providers.
 	/// </summary>
+	/// <example>
+	/// var dbFactory = new DbFactory(System.Data.SqlClient.SqlClientFactory.Instance);
+	/// </example>
 	public class DbFactory : IDbFactory {
 
 		protected DbProviderFactory DbPrvFactory;
