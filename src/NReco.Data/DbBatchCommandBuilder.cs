@@ -45,7 +45,7 @@ namespace NReco.Data {
 		}
 
 		protected override void SetCommandText(IDbCommand cmd, string sqlStatement) {
-			if (CurrentBatchCommand!=null && CurrentBatchCommand.CommandText.Length>0) {
+			if (CurrentBatchCommand!=null && CurrentBatchCommand.CommandText!=null && CurrentBatchCommand.CommandText.Length>0) {
 				CurrentBatchCommand.CommandText += SqlStatementSeparator + sqlStatement;
 			} else {
 				base.SetCommandText(cmd, sqlStatement);
