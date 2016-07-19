@@ -47,7 +47,8 @@ namespace NReco.Data
 		/// <item>@orderby (order by expression, may be empty)</item>
 		/// <item>@recordoffset (starting record index offset, 0 by default)</item>
 		/// <item>@recordcount (max number of records to return, empty if not specified)</item>
-		/// <item>@recordtop (recordoffset+recordcount, empty if recordcount is not specified)</item>			
+		/// <item>@recordtop (recordoffset+recordcount, empty if recordcount is not specified)</item>	
+		/// <item>@&lt;extendedPropertyKey&gt; (value from Query.ExtendedProperties dictionary)</item>
 		/// </list>
 		/// @record* variables are useful for database-specific paging optimizations, for example:
 		/// <code>
@@ -106,6 +107,11 @@ namespace NReco.Data
 		public string DeleteTemplate { get; set; } = "DELETE FROM @table @where[WHERE {0}]";
 
 		/// <summary>
+		/// Gets or sets view name -> <see cref="DbDataView"/> dictionary.
+		/// </summary>
+		public IDictionary<string,DbDataView> Views { get; set; } = null;
+
+		/// <summary>
 		/// Initializes a new instance of the DbCommandBuilder.
 		/// </summary>
 		/// <param name="dbFactory">DB provider-specific factory implementation</param>
@@ -139,66 +145,18 @@ namespace NReco.Data
 			return cmd;
 		}
 
-		string BuildOrderBy(Query query, ISqlExpressionBuilder sqlBuilder) {
-			var orderBy = new StringBuilder();
-			if (query.Sort!=null && query.Sort.Length>0) {
-				foreach (var sortFld in query.Sort) {
-					if (orderBy.Length>0)
-						orderBy.Append(',');
-					orderBy.Append( sqlBuilder.BuildValue( (IQueryValue) sortFld.Field) );
-					orderBy.Append(' ');
-					orderBy.Append(sortFld.SortDirection == ListSortDirection.Ascending ? QSort.Asc : QSort.Desc);
-				}
-			} else {
-				return null;
+		DbDataView defaultSelectView = null;
+
+		internal string BuildSelectInternal(Query query, ISqlExpressionBuilder sqlBuilder, bool isSubquery) {
+			DbDataView view = null;
+			if (Views==null || !Views.TryGetValue(query.Table.Name, out view)) {
+				// default template
+				if (defaultSelectView!=null && defaultSelectView.SelectTemplate == SelectTemplate)
+					view = defaultSelectView;
+				else
+					view = defaultSelectView = new DbDataView(SelectTemplate);
 			}
-			return orderBy.ToString();
-		}
-
-		string BuildSelectColumns(Query query, ISqlExpressionBuilder sqlBuilder) {
-			// Compose fields part
-			if (query.Fields == null || query.Fields.Length == 0)
-				return "*";
-
-			var columns = new StringBuilder();
-			foreach (var f in query.Fields) {
-				var fld = sqlBuilder.BuildValue((IQueryValue)f);
-				if (fld != f.Name) { //skip "as" for usual fields
-					fld = String.IsNullOrEmpty(f.Name) ? f.Expression : String.Format("({0}) as {1}", fld, f.Name);
-				}
-				if (columns.Length>0)
-					columns.Append(',');
-				columns.Append(fld);
-			}
-			return columns.ToString();
-		}
-
-		string GetSelectTableName(QTable table) {
-			if (!String.IsNullOrEmpty(table.Alias))
-				return table.Name + " " + table.Alias;
-			return table.Name;
-		}
-
-		internal string BuildSelectInternal(Query query, ISqlExpressionBuilder sqlBuilder, bool isNested) {
-			string columns = BuildSelectColumns(query, sqlBuilder);
-			string orderBy = BuildOrderBy(query, sqlBuilder);
-			string whereExpression = sqlBuilder.BuildExpression(query.Condition);
-			
-			var selectTpl = new StringTemplate(SelectTemplate);
-			var sqlText = selectTpl.FormatTemplate( (varName) => {
-				switch (varName) {
-					case "table": return new StringTemplate.TokenResult( GetSelectTableName(query.Table) );
-					case "where": return new StringTemplate.TokenResult( whereExpression );
-					case "orderby": return new StringTemplate.TokenResult( orderBy );
-					case "columns": return new StringTemplate.TokenResult( columns );
-					case "recordoffset": return new StringTemplate.TokenResult( query.RecordOffset );
-					case "recordcount": return query.RecordCount<Int32.MaxValue ? new StringTemplate.TokenResult( query.RecordCount ) : StringTemplate.TokenResult.NotDefined;
-					case "recordtop": return query.RecordCount<Int32.MaxValue ? new StringTemplate.TokenResult( query.RecordOffset+query.RecordCount ) : StringTemplate.TokenResult.NotDefined;
-				}
-				return StringTemplate.TokenResult.NotDefined;
-			});
-
-			return sqlText;
+			return view.FormatSelectSql(query,sqlBuilder,isSubquery);
 		}
 
 		/// <summary>

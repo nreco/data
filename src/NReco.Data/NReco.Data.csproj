@@ -51,6 +51,7 @@
     <Compile Include="DbCommandBuilder.cs" />
     <Compile Include="DbCommandBuilderExtensions.cs" />
     <Compile Include="DbDataAdapter.cs" />
+    <Compile Include="DbDataView.cs" />
     <Compile Include="DbSqlExpressionBuilder.cs" />
     <Compile Include="DbFactory.cs" />
     <Compile Include="IDbCommandBuilder.cs" />
