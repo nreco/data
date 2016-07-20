@@ -6,6 +6,7 @@ using System.IO;
 
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 
 using NReco.Data;
 
@@ -36,7 +37,8 @@ namespace SqliteDemo.CommandBuilder
 				// simple helper class that holds DB context.
 				var dbContext = new DbContext() {
 					CommandBuilder = dbCmdBuilder,
-					Connection = conn
+					Connection = conn,
+					DbFactory = dbFactory
 				};
 
 				try {
@@ -57,6 +59,9 @@ namespace SqliteDemo.CommandBuilder
 					dbContext.Transaction = null;
 
 					RunDelete(dbContext);
+
+					// batch inserts: several SQL statements in one DbCommand
+					RunBatchInserts(dbContext);
 
 				} finally {
 					conn.Close();
@@ -123,10 +128,68 @@ namespace SqliteDemo.CommandBuilder
 			Console.WriteLine();
 		}
 
+		static void RunBatchInserts(DbContext dbContext) {
+			// about SQL statements batches: https://msdn.microsoft.com/en-us/library/ms712553%28v=vs.85%29.aspx
+			// note that depending on database/ADO.NET connector, executing SQL statements in batch may not lead to performance boost
+			// (for example, for SQLite)
+			// usually batches are efficient for inserting/updating many records in cloud DB 
+			// (like Azure SQL: https://azure.microsoft.com/en-us/documentation/articles/sql-database-use-batching-to-improve-performance/ )
+
+			var sw = new Stopwatch();
+			var batchCmdBuilder = new DbBatchCommandBuilder(dbContext.DbFactory);
+
+			// lets create 10,000 records to insert
+			var insertsCount = 10000;
+			var insertRecords = new List<Dictionary<string,object>>();
+			for (int i=0; i<insertsCount; i++) {
+				insertRecords.Add( new Dictionary<string, object>() {
+					{ "EmployeeID", 1000+i },
+					{ "FirstName", "First"+i.ToString() },
+					{ "LastName", "Last"+i.ToString() }
+				} );
+			}
+
+			sw.Start();
+
+			// insert in batch (10-per-command)
+			var batchSize = 10;
+			var startIdx = 0;
+
+			using (var tr = dbContext.Connection.BeginTransaction()) {
+
+				while (startIdx<insertRecords.Count) {
+					batchCmdBuilder.BeginBatch();
+					for (var i=0; i<batchSize && (i+startIdx)<insertRecords.Count; i++) {
+						batchCmdBuilder.GetInsertCommand("Employees", insertRecords[startIdx+i] );
+					}
+					var cmd = batchCmdBuilder.EndBatch();
+					cmd.Connection = dbContext.Connection;
+					cmd.Transaction = tr;
+					cmd.ExecuteNonQuery();
+					startIdx += batchSize;
+
+					if ( (startIdx%1000)==0 )
+						Console.WriteLine("Inserted {0} records...", startIdx);
+				}
+				tr.Commit();
+			}
+
+			sw.Stop();
+
+			Console.WriteLine("Inserted {0} records in {1}", insertsCount, sw.Elapsed);
+			
+			// ensure that records are really inserted
+			var employeesCountCmd = dbContext.CommandBuilder.GetSelectCommand(new Query("Employees").Select(QField.Count) );
+			employeesCountCmd.Connection = dbContext.Connection;
+			Console.WriteLine("Number of records in 'Employees' table: {0}", employeesCountCmd.ExecuteScalar() );
+		}
+
+
 		public class DbContext {
 			public IDbConnection Connection { get; set; }
 			public IDbCommandBuilder CommandBuilder { get; set; }
 			public IDbTransaction Transaction { get; set; }
+			public IDbFactory DbFactory { get; set; }
 
 			public void InitCommand(IDbCommand cmd) {
 				cmd.Connection = Connection;

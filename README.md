@@ -1,10 +1,11 @@
 # NReco.Data
-Lightweight data access components for generating SQL commands by dynamic queries, mapping results to strongly typed POCO models or dictionaries, CRUD-operations. 
+Lightweight data access components for generating SQL commands by abstract queries, mapping results to strongly typed POCO models or dictionaries, CRUD-operations. 
 
-* abstract Query structure
+* abstract DB-independent Query structure
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
 * DbBatchCommandBuilder for generating several SQL statements into one IDbCommand instance (batch inserts, updates)
 * DbDataAdapter for CRUD-operations, can map query results to objects, insert/update by objects
+* application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 
 * parser for compact string query representation (relex)
@@ -40,14 +41,14 @@ var employeeDictionary = dbAdapter.Select(
 	).ToDictionary();
 ```
 
-**Relex** - compact query expressions:
+**Relex** - compact relational query expressions:
 ```
 var relexParser = new NReco.Data.Relex.RelexParser();
 Query q = relexParser.Parse("Employees(BirthDate>"1960-01-01":datetime)[Name,BirthDate]");
 ```
 
 More examples:
-* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder)
+* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder) (includes code for batching inserts)
 * [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter)
 
 Nuget package: [NReco.Data](https://www.nuget.org/packages/NReco.Data/)

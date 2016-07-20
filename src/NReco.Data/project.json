@@ -1,7 +1,7 @@
 ﻿{
   "version": "1.0.0-alpha3",
   "title": "NReco.Data",
-  "description": "Lightweight data access components for generating SQL commands by db-independent queries.",
+  "description": "Lightweight db-independent DAL for generating SQL commands by abstract queries, CRUD operations, POCO mapping.",
   "authors": [ "Vitalii Fedorchenko" ],
   "copyright": "Copyright (c) 2016 Vitalii Fedorchenko",
   "packOptions": {
