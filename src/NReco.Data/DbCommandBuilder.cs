@@ -17,9 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
-#if !NET_STANDARD
 using System.ComponentModel;
-#endif
 
 namespace NReco.Data
 {

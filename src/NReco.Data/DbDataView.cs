@@ -25,15 +25,44 @@ namespace NReco.Data {
 	/// Represents application-level read-only data view (complex query that can be queries a table).
 	/// </summary>
 	public class DbDataView {
-
+		
+		/// <summary>
+		/// Gets select template string for <see cref="StringTemplate"/>.
+		/// </summary>
 		public string SelectTemplate { get; private set; }
 
+		/// <summary>
+		/// Query fields mapping to SQL expressions (optional).
+		/// </summary>
+		/// <remarks>
+		/// Field mappings are useful for defining SQL-calculated columns, or resolving ambigious columns names:
+		/// <code>
+		/// var dbView = new DbDataView(
+		///		@"SELECT @columns FROM persons p
+		///		  LEFT JOIN countries c ON (c.id=p.country_id)
+		///		@where[ WHERE {0}] @orderby[ ORDER BY {0}]") {
+		///		FieldMapping = new Dictionary&lt;string,string&gt;() {
+		///			// just id is ambigious
+		///			{"id", "p.id"},  
+		///			// SQL expression for calculated "expired" field
+		///			{"expired", "CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END" } 
+		///     }
+		/// } );
+		/// </code>
+		/// </remarks>
 		public IDictionary<string,string> FieldMapping { get; set; }
 
 		public DbDataView(string selectTemplate) {
 			SelectTemplate = selectTemplate;
 		}
 
+		/// <summary>
+		/// Generates SELECT SQL statement by given <see cref="Query"/> and <see cref="ISqlExpressionBuilder"/>.
+		/// </summary>
+		/// <param name="query">formal query structure</param>
+		/// <param name="sqlBuilder">SQL builder component</param>
+		/// <param name="isSubquery">subquery flag (true if this is sub-query select)</param>
+		/// <returns>SQL select command text</returns>
 		public virtual string FormatSelectSql(Query query, ISqlExpressionBuilder sqlBuilder, bool isSubquery) {
 			var isCount = IsCountQuery(query);
 			string columns = BuildSelectColumns(query, sqlBuilder);
@@ -72,6 +101,11 @@ namespace NReco.Data {
 			return qValue;
 		}
 
+		string ApplyFieldMapping(string field) {
+			if (FieldMapping!=null && FieldMapping.ContainsKey(field))
+				return FieldMapping[field];
+			return field;
+		}
 
 		string BuildOrderBy(Query query, ISqlExpressionBuilder sqlBuilder) {
 			var orderBy = new StringBuilder();
@@ -92,7 +126,7 @@ namespace NReco.Data {
 		string BuildSelectColumns(Query query, ISqlExpressionBuilder sqlBuilder) {
 			// Compose fields part
 			if (query.Fields == null || query.Fields.Length == 0)
-				return "*";
+				return ApplyFieldMapping("*");
 
 			var columns = new StringBuilder();
 			foreach (var qField in query.Fields) {
@@ -101,8 +135,11 @@ namespace NReco.Data {
 					f = new QField(f.Name, FieldMapping[f.Name]);	
 
 				var fld = sqlBuilder.BuildValue((IQueryValue)f);
-				if (fld != f.Name) { //skip "as" for usual fields
-					fld = String.IsNullOrEmpty(f.Name) ? f.Expression : String.Format("({0}) as {1}", fld, f.Name);
+				if (fld != f.Name) { // use "as" only for expression-fields
+					// special handling for 'count(*)' mapping
+					if (fld.ToLower()=="count(*)")
+						fld = ApplyFieldMapping("count(*)");
+					fld = String.IsNullOrEmpty(f.Name) ? fld : String.Format("({0}) as {1}", fld, f.Name);
 				}
 				if (columns.Length>0)
 					columns.Append(',');

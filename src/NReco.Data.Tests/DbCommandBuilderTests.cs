@@ -141,6 +141,46 @@ namespace NReco.Data.Tests {
 			Assert.Equal( cmd.CommandText, masterSQL);
 			Assert.Equal( cmd.Parameters.Count, 1);
 		}
+
+		[Fact]
+		public void DataView() {
+			var dbFactory = new DbFactory( SqlClientFactory.Instance );
+			var cmdGenerator = new DbCommandBuilder(dbFactory);
+
+			cmdGenerator.Views = new Dictionary<string,DbDataView>() {
+				{ "persons_view", 
+					new DbDataView(
+						@"SELECT @columns FROM persons p LEFT JOIN countries c ON (c.id=p.country_id) @where[ WHERE {0}] @orderby[ ORDER BY {0}]") {
+							FieldMapping = new Dictionary<string,string>() {
+								{"id", "p.id"},  
+								{"count(*)", "count(p.id)" },
+								{"*", "p.*" },
+								{"expired", "CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END" } 
+							}			
+						}
+				} };
+			
+			// simple count query test
+			Assert.Equal(
+				"SELECT (count(p.id)) as cnt FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
+				cmdGenerator.GetSelectCommand( new Query("persons_view").Select(QField.Count) ).CommandText.Trim()
+			);
+			
+			// field mapping in select columns
+			Assert.Equal(
+				"SELECT (p.id) as id,name,(CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END) as expired FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
+				cmdGenerator.GetSelectCommand( new Query("persons_view")
+					.Select("id", "name", "expired") ).CommandText.Trim()
+			);
+
+			// field mapping in conditions
+			Assert.Equal(
+				"SELECT p.* FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)  WHERE (p.id>@p0) And (CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END=@p1)",
+				cmdGenerator.GetSelectCommand( new Query("persons_view",
+					(QField)"id">(QConst)5 & (QField)"expired"==new QConst(true)
+				) ).CommandText.Trim()
+			);
+		}
 		
 
 		

@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-alpha2",
+  "version": "1.0.0-alpha3",
   "title": "NReco.Data",
   "description": "Lightweight data access components for generating SQL commands by db-independent queries.",
   "authors": [ "Vitalii Fedorchenko" ],
@@ -7,7 +7,7 @@
   "packOptions": {
     "owners": [ "Vitalii Fedorchenko" ],
     "projectUrl": "http://www.nrecosite.com/dalc_net.aspx",
-    "tags": [ "data", "relex", "sql", "query", "generator", "ado.net", "database", "DAL" ],
+    "tags": [ "data", "relex", "sql", "query", "generator", "batch", "ado.net", "database", "DAL", "micro-orm", "data-mapper", "poco", "Core" ],
     "licenseUrl": "https://raw.githubusercontent.com/nreco/data/master/LICENSE",
     "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
   },
