@@ -71,7 +71,7 @@ namespace NReco.Data
 			// all constants are passed as parameters						
 			var cmdParam = DbFactory.AddCommandParameter(Command,constValue);
 			if (value is QVar) {
-				cmdParam.Parameter.ParameterName = ((QVar)value).Name;
+				cmdParam.Parameter.SourceColumn = ((QVar)value).Name;
 			}
 			return cmdParam.Placeholder;
 		}

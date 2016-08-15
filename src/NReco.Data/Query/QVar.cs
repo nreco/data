@@ -82,13 +82,14 @@ namespace NReco.Data
 		/// </summary>
 		/// <remarks>Assigned QVar can be used as QConst</remarks>
 		/// <param name="varValue">variable value</param>
-		public void Set(object varValue) {
+		public QVar Set(object varValue) {
 			if (Format != null) {
 				_VarValue = String.Format(Format, varValue);
 			} else { 
 				_VarValue = varValue;
 			}
 			_isDefined = true;
+			return this;
 		}
 
 		/// <summary>

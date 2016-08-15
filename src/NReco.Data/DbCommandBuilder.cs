@@ -30,7 +30,7 @@ namespace NReco.Data
 		/// <summary>
 		/// Gets DB Factory component.
 		/// </summary>
-		protected IDbFactory DbFactory {  get; private set; }
+		public IDbFactory DbFactory {  get; private set; }
 
 		/// <summary>
 		/// Gets or sets template for SQL SELECT query.

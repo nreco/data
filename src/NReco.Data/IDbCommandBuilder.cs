@@ -34,5 +34,6 @@ namespace NReco.Data
 
 		IDbCommand GetUpdateCommand(Query query, IEnumerable<KeyValuePair<string,IQueryValue>> data);
 
+		IDbFactory DbFactory { get; }
 	}
 }

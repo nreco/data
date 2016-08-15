@@ -41,7 +41,7 @@ namespace NReco.Data {
 		/// <summary>
 		/// Gets or sets <see cref="IDbTransaction"/> initiated for the <see cref="Connection"/>.
 		/// </summary>
-		public IDbTransaction Transaction { get; private set; }
+		public IDbTransaction Transaction { get; set; }
 
 		/// <summary>
 		/// Gets or sets flag that determines whether query record offset is applied during reading query results.
@@ -86,32 +86,50 @@ namespace NReco.Data {
 			return new SelectQuery(this, selectCmd, q, fieldToPropertyMap);
 		}
 
-		public int Insert(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
+		int InsertInternal(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
 			var insertCmd = CommandBuilder.GetInsertCommand(tableName, data);
 			InitCmd(insertCmd);
 			return ExecuteNonQuery(insertCmd);
 		}
+		
+		public int Insert(string tableName, IDictionary<string,object> data) {
+			return InsertInternal(tableName, DataHelper.GetChangeset(data) );
+		}
 
 		public int Insert(string tableName, object pocoModel) {
-			return Insert(tableName, DataHelper.GetChangeset( pocoModel, null) );
+			return InsertInternal(tableName, DataHelper.GetChangeset( pocoModel, null) );
 		}
 
 		public int Insert(string tableName, object pocoModel, IDictionary<string,string> propertyToFieldMap) {
-			return Insert(tableName, DataHelper.GetChangeset( pocoModel, propertyToFieldMap) );
+			return InsertInternal(tableName, DataHelper.GetChangeset( pocoModel, propertyToFieldMap) );
 		}
 
-		public int Update(Query q, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
+		
+		int UpdateInternal(Query q, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
 			var updateCmd = CommandBuilder.GetUpdateCommand(q, data);
 			InitCmd(updateCmd);
 			return ExecuteNonQuery(updateCmd);
 		}
+		
+		public int Update(Query q, IDictionary<string,object> data) {
+			return UpdateInternal(q, DataHelper.GetChangeset(data) );
+		}
 
 		public int Update(Query q, object pocoModel) {
-			return Update(q, DataHelper.GetChangeset( pocoModel, null) );
+			return UpdateInternal(q, DataHelper.GetChangeset( pocoModel, null) );
 		}
 
 		public int Update(Query q, object pocoModel, IDictionary<string,string> propertyToFieldMap) {
-			return Update(q, DataHelper.GetChangeset( pocoModel, propertyToFieldMap) );
+			return UpdateInternal(q, DataHelper.GetChangeset( pocoModel, propertyToFieldMap) );
+		}
+
+		public int Update(string tableName, RecordSet recordSet) {
+			if (recordSet.PrimaryKey==null || recordSet.PrimaryKey.Length==0)
+				throw new NotSupportedException("Update operation can be performed only for RecordSet with PrimaryKey");
+			var rsAdapter = new RecordSetAdapter(this, tableName, recordSet);
+			var affected = rsAdapter.Update();
+			recordSet.AcceptChanges();
+			return affected;
 		}
 
 		public int Delete(Query q) {
@@ -126,6 +144,97 @@ namespace NReco.Data {
 				affectedRecords = cmd.ExecuteNonQuery();
 			});
 			return affectedRecords;
+		}
+
+		internal class RecordSetAdapter {
+			RecordSet RS;
+			DbDataAdapter DbAdapter;
+			string TableName;
+			IDbCommand InsertCmd = null;
+			IDbCommand UpdateCmd = null;
+			IDbCommand DeleteCmd = null;
+			RecordSet.Column[] setColumns;
+			RecordSet.Column autoIncrementCol;
+
+			internal RecordSetAdapter(DbDataAdapter dbAdapter, string tblName, RecordSet rs) {
+				RS = rs;
+				DbAdapter = dbAdapter;
+				TableName = tblName;
+				setColumns = RS.Columns.Where(c=>!c.AutoIncrement).ToArray();
+				if (setColumns.Length!=RS.Columns.Length)
+					autoIncrementCol = RS.Columns.Where(c=>c.AutoIncrement).FirstOrDefault();
+			}
+
+			IEnumerable<KeyValuePair<string,IQueryValue>> GetSetColumns() {
+				return setColumns.Select( c => new KeyValuePair<string,IQueryValue>(c.Name, new QVar(c.Name).Set(null) ) );
+			}
+			Query GetPkQuery() {
+				var q = new Query(TableName);
+				var grpAnd = QGroupNode.And();
+				q.Condition = grpAnd;
+				foreach (var pkCol in RS.PrimaryKey) {
+					grpAnd.Nodes.Add( (QField)pkCol.Name == new QVar(pkCol.Name).Set(null) );
+				}
+				return q;
+			}
+
+			int ExecuteInsertCmd(RecordSet.Row row) {
+				if (InsertCmd==null) {
+					InsertCmd = DbAdapter.CommandBuilder.GetInsertCommand(TableName, GetSetColumns() );
+					InsertCmd.Connection = DbAdapter.Connection;
+					InsertCmd.Transaction = DbAdapter.Transaction;
+				}
+				foreach (DbParameter p in InsertCmd.Parameters) {
+					if (p.SourceColumn!=null)
+						p.Value = row[p.SourceColumn] ?? DBNull.Value;
+				}
+				var affected = InsertCmd.ExecuteNonQuery();
+				if (autoIncrementCol!=null) {
+					row[autoIncrementCol.Name] = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection);
+				}
+				return affected;
+			}
+
+			int ExecuteUpdateCmd(RecordSet.Row row) {
+				if (UpdateCmd==null) {
+					UpdateCmd = DbAdapter.CommandBuilder.GetUpdateCommand( GetPkQuery(), GetSetColumns() );
+					UpdateCmd.Connection = DbAdapter.Connection;
+					UpdateCmd.Transaction = DbAdapter.Transaction;
+				}
+				foreach (DbParameter p in UpdateCmd.Parameters) {
+					if (p.SourceColumn!=null)
+						p.Value = row[p.SourceColumn] ?? DBNull.Value;
+				}
+				return UpdateCmd.ExecuteNonQuery();
+			}
+
+			int ExecuteDeleteCmd(RecordSet.Row row) {
+				if (DeleteCmd==null) {
+					DeleteCmd = DbAdapter.CommandBuilder.GetDeleteCommand( GetPkQuery() );
+					DeleteCmd.Connection = DbAdapter.Connection;
+					DeleteCmd.Transaction = DbAdapter.Transaction;
+				}
+				foreach (DbParameter p in DeleteCmd.Parameters) {
+					if (p.SourceColumn!=null)
+						p.Value = row[p.SourceColumn] ?? DBNull.Value;
+				}
+				return DeleteCmd.ExecuteNonQuery();
+			}
+
+			internal int Update() {
+				int affected = 0;
+				foreach (var row in RS) {
+					if ( (row.State&RecordSet.RowState.Added) == RecordSet.RowState.Added) {
+						affected += ExecuteInsertCmd(row);
+					} else if ( (row.State&RecordSet.RowState.Deleted) == RecordSet.RowState.Deleted ) {
+						affected += ExecuteDeleteCmd(row);
+					} else if ( (row.State&RecordSet.RowState.Modified) == RecordSet.RowState.Modified ) {
+						affected += ExecuteUpdateCmd(row);
+					}
+					row.AcceptChanges();
+				}
+				return affected;
+			}
 		}
 
 		/// <summary>
@@ -178,6 +287,13 @@ namespace NReco.Data {
 			}
 
 			/// <summary>
+			/// Returns a list of dictionaries with all query results .
+			/// </summary>
+			public List<Dictionary<string,object>> ToDictionaryList() {
+				return ToList<Dictionary<string,object>>();
+			}
+
+			/// <summary>
 			/// Returns a list with all query results.
 			/// </summary>
 			/// <returns>list with query results</returns>
@@ -187,6 +303,53 @@ namespace NReco.Data {
 				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
 					(rdr) => {
 						result.Add( Read<T>(resTypeCode, rdr) );
+					} );
+				return result;
+			}
+
+			/// <summary>
+			/// Returns a list with all query results as <see cref="RecordSet"/>.
+			/// </summary>
+			public RecordSet ToRecordSet() {
+				RecordSet result = null;
+				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					(rdr) => {
+						if (result==null) {
+							var rsCols = new List<RecordSet.Column>(rdr.FieldCount);
+							var rsPkCols = new List<RecordSet.Column>();
+
+							#if NET_STANDARD
+							// lets populate data schema
+							if (rdr is DbDataReader) {
+								var dbRdr = (DbDataReader)rdr;
+								if (dbRdr.CanGetColumnSchema()) {
+									foreach (var dbCol in dbRdr.GetColumnSchema()) {
+										var c = new RecordSet.Column(dbCol);
+										rsCols.Add(c);
+										if (dbCol.IsKey.HasValue && dbCol.IsKey.Value)
+											rsPkCols.Add(c);
+									}
+								}
+							}
+							#endif
+
+							if (rsCols.Count==0) {
+								// lets suggest columns by standard IDataReader interface
+								for (int i=0; i<rdr.FieldCount; i++) {
+									var colName = rdr.GetName(i);
+									var colType = rdr.GetFieldType(i);
+									rsCols.Add( new RecordSet.Column(colName, colType) );
+								}
+							}
+							result = new RecordSet(rsCols.ToArray(), 1);
+							if (rsPkCols.Count>0)
+								result.PrimaryKey = rsPkCols.ToArray();
+						}
+
+						var rowValues = new object[rdr.FieldCount];
+						rdr.GetValues(rowValues);
+
+						result.Add(rowValues).AcceptChanges();
 					} );
 				return result;
 			}

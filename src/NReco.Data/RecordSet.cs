@@ -1,4 +1,18 @@
-﻿using System;
+﻿#region License
+/*
+ * NReco Data library (http://www.nrecosite.com/)
+ * Copyright 2016 Vitaliy Fedorchenko
+ * Distributed under the MIT license
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#endregion
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -95,6 +109,15 @@ namespace NReco.Data {
 				r.AcceptChanges();
 		}
 
+		public void SetPrimaryKey(params string[] columnNames) {
+			var pkCols = new Column[columnNames.Length];
+			for (int i=0; i<columnNames.Length; i++) {
+				var colIdx = GetColumnIndex(columnNames[i]);
+				pkCols[i] = Columns[colIdx];
+			}
+			PrimaryKey = pkCols;
+		}
+
 		/// <summary>
 		/// Clears the collection of all rows.
 		/// </summary>
@@ -178,12 +201,12 @@ namespace NReco.Data {
 			/// <summary>
 			/// Gets or sets a value that indicates whether null values are allowed in this column.
 			/// </summary>
-			public bool AllowDBNull { get; set; }
+			public bool AllowDBNull { get; set; } = true;
 
 			/// <summary>
 			/// Gets or sets a value that indicates whether the column automatically increments the value of the column for new rows.
 			/// </summary>
-			public bool AutoIncrement { get; set; }
+			public bool AutoIncrement { get; set; } = false;
 
 			public Column(string name) {
 				Name = name;
@@ -193,6 +216,15 @@ namespace NReco.Data {
 				Name = name;
 				DataType = dataType;
 			}
+
+			#if NET_STANDARD
+			internal Column(System.Data.Common.DbColumn dbCol) {
+				Name = dbCol.ColumnName;
+				DataType = dbCol.DataType;
+				AllowDBNull = dbCol.AllowDBNull.HasValue ? dbCol.AllowDBNull.Value : true;
+				AutoIncrement = dbCol.AllowDBNull.HasValue ? dbCol.IsAutoIncrement.Value : false;
+			}
+			#endif
 		}
 
 		/// <summary>
@@ -243,10 +275,11 @@ namespace NReco.Data {
 			/// If the <see cref="State"/> was Deleted, the row is removed (<see cref="State"/> becomes Detached).
 			/// </remarks>
 			public void AcceptChanges() {
-				if ((rowState&RowState.Deleted)==RowState.Deleted)
+				if ((rowState&RowState.Deleted)==RowState.Deleted) {
 					Detach();
-				else
+				} else if (rowState!=RowState.Detached) { 
 					rowState = RowState.Unchanged;
+				}
 			}
 
 			internal void Detach() {
