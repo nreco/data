@@ -121,6 +121,15 @@ namespace NReco.Data {
 			}
 		}
 
+		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(IDictionary<string,object> data) {
+			if (data == null)
+				yield break;
+			foreach (var entry in data) {
+				var qVal = entry.Value is IQueryValue ? (IQueryValue)entry.Value : new QConst(entry.Value);
+				yield return new KeyValuePair<string, IQueryValue>( entry.Key, qVal );
+			}
+		}
+
 		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(object o, IDictionary<string,string> propertyToFieldMap) {
 			if (o == null)
 				yield break;

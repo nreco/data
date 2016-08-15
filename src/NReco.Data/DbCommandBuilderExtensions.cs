@@ -28,7 +28,7 @@ namespace NReco.Data {
 	/// </summary>
 	public static class DbCommandBuilderExtensions {
 
-		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, IDictionary data) {
+		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, IDictionary<string,object> data) {
 			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(data) );
 		}
 		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, object poco) {
@@ -38,7 +38,7 @@ namespace NReco.Data {
 			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(poco, propertyToFieldMap) );
 		}
 
-		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, IDictionary data) {
+		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, IDictionary<string,object> data) {
 			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(data) );
 		}
 		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, object poco) {
