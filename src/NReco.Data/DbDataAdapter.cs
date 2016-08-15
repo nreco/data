@@ -128,6 +128,9 @@ namespace NReco.Data {
 			return affectedRecords;
 		}
 
+		/// <summary>
+		/// Represents select query (returned by <see cref="DbDataAdapter.Select"/> method).
+		/// </summary>
 		public class SelectQuery {
 			DbDataAdapter Adapter;
 			IDbCommand SelectCommand;
