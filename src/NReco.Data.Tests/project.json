@@ -12,6 +12,9 @@
 
   "frameworks": {
     "netcoreapp1.0": {
+      "buildOptions": {
+        "debugType": "portable"
+      },
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",

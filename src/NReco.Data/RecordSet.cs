@@ -52,11 +52,20 @@ namespace NReco.Data {
 		Dictionary<Column,int> ColToIdx;
 		Dictionary<string,int> ColNameToIdx;
 
+		/// <summary>
+		/// Initializes a new instance of <see cref="RecordSet"/> with specified list of <see cref="RecordSet.Column"/>.
+		/// </summary>
+		/// <param name="columns">columns array</param>
 		public RecordSet(Column[] columns) : this(columns, 1) {
 		}
 
+		/// <summary>
+		/// Initializes a new instance of <see cref="RecordSet"/> with specified list of <see cref="RecordSet.Column"/> and capacity.
+		/// </summary>
+		/// <param name="columns">columns array</param>
+		/// <param name="rowsCapacity">initial rows list capacity</param>
 		public RecordSet(Column[] columns, int rowsCapacity) {
-			Rows = new List<Row>(rowsCapacity+1);
+			Rows = new List<Row>(rowsCapacity);
 			this.columns = columns;
 			ColToIdx = new Dictionary<Column, int>(columns.Length);
 			ColNameToIdx = new Dictionary<string, int>(columns.Length);
@@ -80,16 +89,42 @@ namespace NReco.Data {
 			throw new InvalidOperationException();
 		}
 
-		public Row Add(object[] rowValues) {
-			if (rowValues.Length!=columns.Length)
-				throw new InvalidOperationException();
-			var r = new Row(this,rowValues);
+		/// <summary>
+		/// Creates a new row.
+		/// </summary>
+		/// <returns>new row instance</returns>
+		public Row Add() {
+			return Add( (object[])null);
+		}
+
+		/// <summary>
+		/// Creates a row using specified values and adds it to the <see cref="RecordSet"/>.
+		/// </summary>
+		/// <param name="values">The array of values that are used to create the new row.</param>
+		/// <returns>new row instance</returns>
+		public Row Add(object[] values) {
+			if (values==null)
+				values = new object[columns.Length];
+			if (values.Length!=columns.Length)
+				throw new ArgumentException("Values array does not match number of columns in the RecordSet.");
+			var r = new Row(this,values);
 			Rows.Add(r);
 			return r;
 		}
 
-		public Row NewRow() {
+		/// <summary>
+		/// Creates a row using specified column -> value dictionary and adds it to the <see cref="RecordSet"/>.
+		/// </summary>
+		/// <param name="values">Dictionary with column -> value pairs.</param>
+		/// <returns>new row instance</returns>
+		public Row Add(IDictionary<string,object> values) {
 			var r = new Row(this, new object[columns.Length]);
+			object v;
+			for (int i=0; i<columns.Length; i++) {
+				if (values.TryGetValue(columns[i].Name, out v)) {
+					r[i] = v;
+				}
+			}
 			Rows.Add(r);
 			return r;
 		}
@@ -208,6 +243,11 @@ namespace NReco.Data {
 			/// </summary>
 			public bool AutoIncrement { get; set; } = false;
 
+			/// <summary>
+			/// Gets or sets a value that indicates whether the column allows for changes when committed to data source.
+			/// </summary>
+			public bool ReadOnly { get; set; } = false;
+
 			public Column(string name) {
 				Name = name;
 			}
@@ -223,6 +263,9 @@ namespace NReco.Data {
 				DataType = dbCol.DataType;
 				AllowDBNull = dbCol.AllowDBNull.HasValue ? dbCol.AllowDBNull.Value : true;
 				AutoIncrement = dbCol.AllowDBNull.HasValue ? dbCol.IsAutoIncrement.Value : false;
+				ReadOnly = dbCol.IsReadOnly.HasValue ? dbCol.IsReadOnly.Value : false;
+				if (AutoIncrement)
+					ReadOnly = true;
 			}
 			#endif
 		}
@@ -347,6 +390,22 @@ namespace NReco.Data {
 					SetValue(rs.GetColumnIndex(columnName), value);
 				}
 			}
+
+			/// <summary>
+			/// Provides strongly-typed access to each of the column values in the specified row. The Field<T> method also supports nullable types. 
+			/// </summary>
+			/// <typeparam name="T">A generic parameter that specifies the return type of the column.</typeparam>
+			/// <param name="columnName">The name of the column to return the value of.</param>
+			/// <returns>The value, of type T. If value is null or DBNull, default(T) is returned.</returns>
+			public T Field<T>(string columnName) {
+				var v = this[columnName];
+				var typeCode = Type.GetTypeCode(typeof(T));
+				if (v!=null && !DBNull.Value.Equals(v)) {
+					return (T)Convert.ChangeType( v, typeCode, System.Globalization.CultureInfo.InvariantCulture );
+				}
+				return default(T);
+			}
+
 		}
 
 		/// <summary>
