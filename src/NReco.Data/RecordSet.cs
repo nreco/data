@@ -200,6 +200,8 @@ namespace NReco.Data {
 		/// Represents the schema of a column in a <see cref="RecordSet"/>.
 		/// </summary>
 		public sealed class Column {
+
+			bool _AutoIncrement = false;
 			
 			/// <summary>
 			/// Gets or sets the name of the column.
@@ -219,7 +221,10 @@ namespace NReco.Data {
 			/// <summary>
 			/// Gets or sets a value that indicates whether the column automatically increments the value of the column for new rows.
 			/// </summary>
-			public bool AutoIncrement { get; set; } = false;
+			public bool AutoIncrement { 
+				get { return _AutoIncrement; } 
+				set { _AutoIncrement = value; if (value) ReadOnly = true; } 
+			}
 
 			/// <summary>
 			/// Gets or sets a value that indicates whether the column allows for changes when committed to data source.
@@ -240,10 +245,8 @@ namespace NReco.Data {
 				Name = dbCol.ColumnName;
 				DataType = dbCol.DataType;
 				AllowDBNull = dbCol.AllowDBNull.HasValue ? dbCol.AllowDBNull.Value : true;
-				AutoIncrement = dbCol.AllowDBNull.HasValue ? dbCol.IsAutoIncrement.Value : false;
 				ReadOnly = dbCol.IsReadOnly.HasValue ? dbCol.IsReadOnly.Value : false;
-				if (AutoIncrement)
-					ReadOnly = true;
+				AutoIncrement = dbCol.AllowDBNull.HasValue ? dbCol.IsAutoIncrement.Value : false;
 			}
 			#endif
 		}

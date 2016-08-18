@@ -5,6 +5,7 @@
     "xunit": "2.2.0-beta2-build3300",
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "System.Data.SqlClient": "4.1.0",
+    "Microsoft.Data.SQLite": "1.0.0",
     "NReco.Data": {
       "target": "project"
     }

@@ -11,7 +11,24 @@ using NReco.Data;
 
 namespace NReco.Data.Tests {
 
-	public class DbCommandBuilderTests {
+	public class DbCommandBuilderTests : IClassFixture<SqliteDbFixture> {
+
+		SqliteDbFixture SqliteDb;
+
+		public DbCommandBuilderTests(SqliteDbFixture sqliteDb) {
+			SqliteDb = sqliteDb;
+		}
+
+		[Fact]
+		public void Sqlite_Select() {
+			var cmdBuilder = new DbCommandBuilder(SqliteDb.DbFactory);
+
+			var countCmd = cmdBuilder.GetSelectCommand( new Query("contacts").Select(QField.Count) );
+			countCmd.Connection = SqliteDb.DbConnection;
+			SqliteDb.OpenConnection( () => {
+				Assert.Equal(5, Convert.ToInt32( countCmd.ExecuteScalar() ) );
+			});
+		}
 
 		QNode createTestQuery() {
 			return  (

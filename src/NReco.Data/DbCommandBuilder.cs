@@ -107,7 +107,7 @@ namespace NReco.Data
 		/// <summary>
 		/// Gets or sets view name -> <see cref="DbDataView"/> dictionary.
 		/// </summary>
-		public IDictionary<string,DbDataView> Views { get; set; } = null;
+		public IDictionary<string,DbDataView> Views { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the DbCommandBuilder.
@@ -115,6 +115,7 @@ namespace NReco.Data
 		/// <param name="dbFactory">DB provider-specific factory implementation</param>
 		public DbCommandBuilder(IDbFactory dbFactory) {
 			DbFactory = dbFactory;
+			Views = new Dictionary<string,DbDataView>();
 		}
 
 		protected ISqlExpressionBuilder GetSqlBuilder(IDbCommand cmd) {
