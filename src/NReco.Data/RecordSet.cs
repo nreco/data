@@ -29,12 +29,13 @@ namespace NReco.Data {
 		/// <summary>
 		/// Gets the columns of this <see cref="RecordSet"/>.
 		/// </summary>
-		public Column[] Columns { 
+		public ColumnCollection Columns { 
 			get {
 				return columns;
 			}
 		}
-		Column[] columns;
+		ColumnCollection columns;
+		
 		
 		/// <summary>
 		/// Gets or sets an array of columns that function as primary keys for this <see cref="RecordSet"/>.
@@ -49,8 +50,6 @@ namespace NReco.Data {
 		}
 
 		List<Row> Rows;
-		Dictionary<Column,int> ColToIdx;
-		Dictionary<string,int> ColNameToIdx;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="RecordSet"/> with specified list of <see cref="RecordSet.Column"/>.
@@ -66,27 +65,7 @@ namespace NReco.Data {
 		/// <param name="rowsCapacity">initial rows list capacity</param>
 		public RecordSet(Column[] columns, int rowsCapacity) {
 			Rows = new List<Row>(rowsCapacity);
-			this.columns = columns;
-			ColToIdx = new Dictionary<Column, int>(columns.Length);
-			ColNameToIdx = new Dictionary<string, int>(columns.Length);
-			for (int i=0; i<columns.Length; i++) {
-				ColToIdx[columns[i]] = i;
-				ColNameToIdx[columns[i].Name] = i;
-			}
-		}
-
-		internal int GetColumnIndex(Column c) {
-			int idx;
-			if (ColToIdx.TryGetValue(c, out idx))
-				return idx;
-			throw new InvalidOperationException();
-		}
-
-		internal int GetColumnIndex(string colName) {
-			int idx;
-			if (ColNameToIdx.TryGetValue(colName, out idx))
-				return idx;
-			throw new InvalidOperationException();
+			this.columns = new ColumnCollection(columns);
 		}
 
 		/// <summary>
@@ -104,8 +83,8 @@ namespace NReco.Data {
 		/// <returns>new row instance</returns>
 		public Row Add(object[] values) {
 			if (values==null)
-				values = new object[columns.Length];
-			if (values.Length!=columns.Length)
+				values = new object[columns.Columns.Length];
+			if (values.Length!=columns.Columns.Length)
 				throw new ArgumentException("Values array does not match number of columns in the RecordSet.");
 			var r = new Row(this,values);
 			Rows.Add(r);
@@ -118,10 +97,10 @@ namespace NReco.Data {
 		/// <param name="values">Dictionary with column -> value pairs.</param>
 		/// <returns>new row instance</returns>
 		public Row Add(IDictionary<string,object> values) {
-			var r = new Row(this, new object[columns.Length]);
+			var r = new Row(this, new object[columns.Columns.Length]);
 			object v;
-			for (int i=0; i<columns.Length; i++) {
-				if (values.TryGetValue(columns[i].Name, out v)) {
+			for (int i=0; i<columns.Columns.Length; i++) {
+				if (values.TryGetValue(columns.Columns[i].Name, out v)) {
 					r[i] = v;
 				}
 			}
@@ -147,8 +126,7 @@ namespace NReco.Data {
 		public void SetPrimaryKey(params string[] columnNames) {
 			var pkCols = new Column[columnNames.Length];
 			for (int i=0; i<columnNames.Length; i++) {
-				var colIdx = GetColumnIndex(columnNames[i]);
-				pkCols[i] = Columns[colIdx];
+				pkCols[i] = Columns[columnNames[i]];
 			}
 			PrimaryKey = pkCols;
 		}
@@ -295,6 +273,13 @@ namespace NReco.Data {
 			}
 
 			/// <summary>
+			/// Gets or sets all the values for this row through an array.
+			/// </summary>
+			public object[] ItemArray {
+				get { return values; }
+			}
+
+			/// <summary>
 			/// Deletes the <see cref="RecordSet.Row"/>.
 			/// </summary>
 			/// <remarks>
@@ -367,11 +352,11 @@ namespace NReco.Data {
 			public object this[Column column] {
 				get {
 					CheckIfDetached();
-					return GetValue(rs.GetColumnIndex(column));
+					return GetValue(rs.columns.GetOrdinal(column));
 				}
 				set {
 					CheckIfDetached();
-					SetValue(rs.GetColumnIndex(column), value);
+					SetValue(rs.columns.GetOrdinal(column), value);
 				}
 			}
 
@@ -383,11 +368,11 @@ namespace NReco.Data {
 			public object this[string columnName] {
 				get {
 					CheckIfDetached();
-					return GetValue(rs.GetColumnIndex(columnName));
+					return GetValue(rs.columns.GetOrdinal(columnName));
 				}
 				set {
 					CheckIfDetached();
-					SetValue(rs.GetColumnIndex(columnName), value);
+					SetValue(rs.columns.GetOrdinal(columnName), value);
 				}
 			}
 
@@ -418,6 +403,111 @@ namespace NReco.Data {
 			Added = 4,
 			Deleted = 8,
 			Modified = 16
+		}
+
+		/// <summary>
+		/// Represents a collection of <see cref="RecordSet.Column"/> objects for a <see cref="RecordSet"/>.
+		/// </summary>
+		public sealed class ColumnCollection : 
+			#if NET_STANDARD
+			IReadOnlyList<Column>
+			#else 
+			ICollection<Column>
+			#endif
+		{
+			
+			internal Column[] Columns;
+			Dictionary<Column,int> ColToIdx;
+			Dictionary<string,int> ColNameToIdx;
+
+			internal ColumnCollection(Column[] columns) {
+				Columns = columns;
+				ColToIdx = new Dictionary<Column, int>(columns.Length);
+				ColNameToIdx = new Dictionary<string, int>(columns.Length);
+				for (int i=0; i<columns.Length; i++) {
+					ColToIdx[columns[i]] = i;
+					ColNameToIdx[columns[i].Name] = i;
+				}
+			}
+
+			internal int GetOrdinal(Column c) {
+				int idx;
+				if (ColToIdx.TryGetValue(c, out idx))
+					return idx;
+				throw new ArgumentException("Column with name '"+c.Name+"' does not exist.");
+			}
+
+			public int GetOrdinal(string columnName) {
+				int idx;
+				if (ColNameToIdx.TryGetValue(columnName, out idx))
+					return idx;
+				throw new ArgumentException("Column with name '"+columnName+"' does not exist.");
+			}
+
+			/// <summary>
+			/// Gets the total number of elements in a collection.
+			/// </summary>
+			public int Count {
+				get {
+					return Columns.Length;
+				}
+			}
+
+			/// <summary>
+			/// Gets the <see cref="RecordSet.Column"/> from the collection at the specified index.
+			/// </summary>
+			public Column this[int ordinal] {
+				get {
+					return Columns[ordinal];
+				}
+			}
+
+			/// <summary>
+			/// Gets the <see cref="RecordSet.Column"/> from the collection with the specified name.
+			/// </summary>
+			public Column this[string columnName] {
+				get {
+					return Columns[GetOrdinal(columnName)];
+				}
+			}
+
+			public IEnumerator<Column> GetEnumerator() {
+				return ((IEnumerable<Column>)Columns).GetEnumerator();
+			}
+
+			IEnumerator IEnumerable.GetEnumerator() {
+				return Columns.GetEnumerator();
+			}
+
+			#if !NET_STANDARD
+			bool ICollection<Column>.IsReadOnly {
+				get {
+					return true;
+				}
+			}
+
+			void ICollection<Column>.Add(Column item) {
+				throw new NotSupportedException("ColumnCollection is readonly");
+			}
+
+			void ICollection<Column>.Clear() {
+				throw new NotSupportedException("ColumnCollection is readonly");
+			}
+
+			bool ICollection<Column>.Contains(Column item) {
+				throw new NotImplementedException();
+			}
+
+			void ICollection<Column>.CopyTo(Column[] array, int arrayIndex) {
+				throw new NotImplementedException();
+			}
+
+			bool ICollection<Column>.Remove(Column item) {
+				throw new NotSupportedException("ColumnCollection is readonly");
+			}
+			#endif
+
+
 		}
 
 	}
