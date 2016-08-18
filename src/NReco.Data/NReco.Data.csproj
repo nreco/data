@@ -74,6 +74,7 @@
     <Compile Include="Query\QRawSqlNode.cs" />
     <Compile Include="Query\QVar.cs" />
     <Compile Include="RecordSet.cs" />
+    <Compile Include="RecordSetReader.cs" />
     <Compile Include="Relex\RelexBuilder.cs" />
     <Compile Include="Relex\RelexParser.cs" />
     <Compile Include="StringTemplate.cs" />

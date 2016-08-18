@@ -19,6 +19,13 @@ namespace NReco.Data.Tests
 					new RecordSet.Column("age", typeof(int))
 				}
 			);
+
+			// columns collection
+			Assert.Equal(3, rs.Columns.Count);
+			Assert.Equal(1, rs.Columns.GetOrdinal("name"));
+			Assert.Equal("age", rs.Columns[2].Name);
+			Assert.Equal("name", rs.Columns["name"].Name);
+
 			Assert.Throws<ArgumentException>( () => {
 				rs.Add( new object[2]);
 			});
@@ -70,9 +77,55 @@ namespace NReco.Data.Tests
 			Assert.Equal( "Bart", rs[0]["name"] );
 
 
-			Assert.Throws<InvalidOperationException>( () => {
+			Assert.Throws<ArgumentException>( () => {
 				var t = rs[0]["test"];
 			});
+		}
+
+		[Fact]
+		public void RecordSetReader() {
+			var testRS = new RecordSet(new [] {
+					new RecordSet.Column("id", typeof(int)),
+					new RecordSet.Column("name", typeof(string)),
+					new RecordSet.Column("amount", typeof(decimal)),
+					new RecordSet.Column("added_date", typeof(DateTime))			
+			});
+			for (int i=0; i<100; i++) {
+				testRS.Add( new object[] {
+					i, "Name"+i.ToString(), i%20, new DateTime(2000, 1, 1).AddMonths(i)
+				});
+			}
+
+			var rdr = new RecordSetReader(testRS);
+
+			Assert.True( rdr.HasRows );
+			Assert.Throws<InvalidOperationException>( () => { var o = rdr[0]; });
+			
+			Assert.True( rdr.Read() );
+			Assert.Equal( 4, rdr.FieldCount );
+			Assert.Equal("id", rdr.GetName(0));
+			Assert.Equal(2, rdr.GetOrdinal("amount"));
+			Assert.Equal("added_date", rdr.GetName(3));
+			Assert.Throws<IndexOutOfRangeException>( () => { var o = rdr.GetName(4); });
+
+			Assert.Equal(0, rdr.GetInt32(0) );
+			Assert.Equal(0, rdr[0]);
+			Assert.Equal("Name0", rdr[1]);
+			Assert.Equal(0, rdr[2]);
+			Assert.Equal(1, rdr.GetDateTime(3).Month);
+
+			int cnt = 1;
+			while (rdr.Read()) {
+				Assert.Equal(cnt, rdr[0] );
+				cnt++;
+			}
+			Assert.Throws<InvalidOperationException>( () => { var o = rdr[0]; });
+
+			rdr.Dispose();
+			Assert.Throws<InvalidOperationException>( () => { var o = rdr.FieldCount; });
+			Assert.Throws<InvalidOperationException>( () => { var o = rdr.GetOrdinal("id"); });
+
+			Assert.Equal(100, cnt);
 		}
 
 	}
