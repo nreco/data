@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace NReco.Data {
 	
@@ -34,7 +35,7 @@ namespace NReco.Data {
 				return columns;
 			}
 		}
-		ColumnCollection columns;
+		ColumnCollection columns = null;
 		
 		
 		/// <summary>
@@ -56,6 +57,15 @@ namespace NReco.Data {
 		/// </summary>
 		/// <param name="columns">columns array</param>
 		public RecordSet(Column[] columns) : this(columns, 1) {
+		}
+
+		/// <summary>
+		/// Initializes a new instance of <see cref="RecordSet"/> with schema and data from specified <see cref="IDataReader"/>.
+		/// </summary>		 
+		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
+		public RecordSet(IDataReader rdr) {
+			Rows = new List<Row>();
+			LoadInternal(rdr,true);
 		}
 
 		/// <summary>
@@ -194,6 +204,52 @@ namespace NReco.Data {
 		/// </summary>
 		IEnumerator IEnumerable.GetEnumerator() {
 			return Rows.GetEnumerator();
+		}
+
+		/// <summary>
+		/// Fills a <see cref="RecordSet"/> with values from a data source using the supplied <see cref="IDataReader"/>.
+		/// </summary>
+		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
+		/// <returns>Number of loaded rows.</returns>
+		public int Load(IDataReader rdr) {
+			return LoadInternal(rdr, false);
+		}
+
+		int LoadInternal(IDataReader rdr, bool initColumns) {
+			int processed = 0;
+			while (rdr.Read()) {
+				Tuple<int,int>[] rdrToRsColIdx = null;
+				if (initColumns && columns==null) {
+					var rs = DataHelper.GetRecordSetByReader(rdr);
+					columns = rs.Columns;
+					PrimaryKey = rs.PrimaryKey;
+				}
+				if (!initColumns && rdrToRsColIdx==null) {
+					var rdrToRsColIdxList = new List<Tuple<int, int>>();
+					for (int i=0; i<rdr.FieldCount; i++) {
+						var colName = rdr.GetName(i);
+						if (this.Columns.Contains(colName))
+							rdrToRsColIdxList.Add( new Tuple<int, int>(i, this.Columns.GetOrdinal(colName) ) );
+					}
+					rdrToRsColIdx = rdrToRsColIdxList.ToArray();
+				}
+
+				processed++;
+				if (initColumns) {
+					// just copy values
+					var rowValues = new object[rdr.FieldCount];
+					rdr.GetValues(rowValues);
+					this.Add(rowValues).AcceptChanges();
+				} else {
+					var r = this.Add();
+					for (int i=0; i<rdrToRsColIdx.Length; i++) {
+						var t = rdrToRsColIdx[i];
+						r[ t.Item2 ] = rdr.GetValue(t.Item1);
+					}
+					r.AcceptChanges();
+				}
+			}
+			return processed;
 		}
 
 		/// <summary>
@@ -472,6 +528,15 @@ namespace NReco.Data {
 				get {
 					return Columns[GetOrdinal(columnName)];
 				}
+			}
+
+			/// <summary>
+			/// Checks whether the collection contains a column with the specified name.
+			/// </summary>
+			/// <param name="columnName">the name of the column.</param>
+			/// <returns>true if a column exists with this name; otherwise, false.</returns>
+			public bool Contains(string columnName) {
+				return ColNameToIdx.ContainsKey(columnName);
 			}
 
 			public IEnumerator<Column> GetEnumerator() {

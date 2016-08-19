@@ -126,6 +126,22 @@ namespace NReco.Data.Tests
 			Assert.Throws<InvalidOperationException>( () => { var o = rdr.GetOrdinal("id"); });
 
 			Assert.Equal(100, cnt);
+
+			// read RS from RecordSetReader
+			var testRSCopy = new RecordSet( new RecordSetReader(testRS) );
+			Assert.Equal( testRS.Count, testRSCopy.Count );
+			Assert.Equal( testRS.Columns.Count, testRSCopy.Columns.Count );
+
+			// read into initialized RecordSet
+			var newRS = new RecordSet(
+				new[] {
+					new RecordSet.Column("id", typeof(int)),
+					new RecordSet.Column("name", typeof(string))
+				}
+			);
+			newRS.Load( new RecordSetReader(testRS) );
+			Assert.Equal(testRS.Count, newRS.Count);
+			Assert.Equal("Name99", newRS[99].Field<string>("name"));
 		}
 
 	}

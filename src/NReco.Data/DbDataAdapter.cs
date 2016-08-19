@@ -373,40 +373,10 @@ namespace NReco.Data {
 				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
 					(rdr) => {
 						if (result==null) {
-							var rsCols = new List<RecordSet.Column>(rdr.FieldCount);
-							var rsPkCols = new List<RecordSet.Column>();
-
-							#if NET_STANDARD
-							// lets populate data schema
-							if (rdr is DbDataReader) {
-								var dbRdr = (DbDataReader)rdr;
-								if (dbRdr.CanGetColumnSchema()) {
-									foreach (var dbCol in dbRdr.GetColumnSchema()) {
-										var c = new RecordSet.Column(dbCol);
-										rsCols.Add(c);
-										if (dbCol.IsKey.HasValue && dbCol.IsKey.Value)
-											rsPkCols.Add(c);
-									}
-								}
-							}
-							#endif
-
-							if (rsCols.Count==0) {
-								// lets suggest columns by standard IDataReader interface
-								for (int i=0; i<rdr.FieldCount; i++) {
-									var colName = rdr.GetName(i);
-									var colType = rdr.GetFieldType(i);
-									rsCols.Add( new RecordSet.Column(colName, colType) );
-								}
-							}
-							result = new RecordSet(rsCols.ToArray(), 1);
-							if (rsPkCols.Count>0)
-								result.PrimaryKey = rsPkCols.ToArray();
+							result = DataHelper.GetRecordSetByReader(rdr);
 						}
-
 						var rowValues = new object[rdr.FieldCount];
 						rdr.GetValues(rowValues);
-
 						result.Add(rowValues).AcceptChanges();
 					} );
 				return result;

@@ -120,8 +120,6 @@ namespace NReco.Data.Tests {
 			newCompany2Row.Delete();
 			DbAdapter.Update("companies", companyRS);
 
-			Console.WriteLine(newCompany1Row.State.ToString() );
-
 			Assert.Equal(2, companyRS.Count);
 			Assert.Equal(2, DbAdapter.Select(new Query("companies").Select(QField.Count) ).Single<int>() );
 		}

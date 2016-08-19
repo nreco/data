@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 
 namespace NReco.Data {
@@ -81,6 +82,39 @@ namespace NReco.Data {
 					}
 				}
 			});
+		}
+
+		internal static RecordSet GetRecordSetByReader(IDataReader rdr) {
+			var rsCols = new List<RecordSet.Column>(rdr.FieldCount);
+			var rsPkCols = new List<RecordSet.Column>();
+
+			#if NET_STANDARD
+			// lets populate data schema
+			if (rdr is DbDataReader) {
+				var dbRdr = (DbDataReader)rdr;
+				if (dbRdr.CanGetColumnSchema()) {
+					foreach (var dbCol in dbRdr.GetColumnSchema()) {
+						var c = new RecordSet.Column(dbCol);
+						rsCols.Add(c);
+						if (dbCol.IsKey.HasValue && dbCol.IsKey.Value)
+							rsPkCols.Add(c);
+					}
+				}
+			}
+			#endif
+
+			if (rsCols.Count==0) {
+				// lets suggest columns by standard IDataReader interface
+				for (int i=0; i<rdr.FieldCount; i++) {
+					var colName = rdr.GetName(i);
+					var colType = rdr.GetFieldType(i);
+					rsCols.Add( new RecordSet.Column(colName, colType) );
+				}
+			}
+			var rs = new RecordSet(rsCols.ToArray(), 1);
+			if (rsPkCols.Count>0)
+				rs.PrimaryKey = rsPkCols.ToArray();
+			return rs;
 		}
 
 		internal static void MapTo(IDataRecord record, object o, IDictionary<string,string> fieldToPropertyMap) {
