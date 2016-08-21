@@ -1,19 +1,20 @@
 # NReco.Data
 Lightweight data access components for generating SQL commands, mapping results to strongly typed POCO models or dictionaries, schema-less CRUD-operations. 
 
-* abstract DB-independent Query structure (no need to compose raw SQL)
+* abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query) (no need to compose raw SQL)
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
-* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand instance (batch inserts, updates)
-* RecordSet structure for many in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
+* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, multiple recordsets)
+* RecordSet structure for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
 * DbDataAdapter for CRUD-operations, can map query results to POCO models, dictionaries and RecordSet
 * application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 
-* parser/builder for compact string query representation (relex)
+* parser/builder for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
 * can be used with any existing ADO.NET data provider (MsSql, PostgreSql, Sqlite, MySql etc)
 * supports both full .NET Framework 4.x and .NET Core (netstandard1.5)
 
 Nuget package: [NReco.Data](https://www.nuget.org/packages/NReco.Data/)
+Documentation: [API Reference](http://www.nrecosite.com/doc/NReco.Data/)
 
 ## How to use 	
 **DbCommandBuilder for SqlClient**:
@@ -53,7 +54,7 @@ dbAdapter.Update(
 		{"LastName", "Wayne" }
 	});
 ```
-**RecordSet** - efficient replacement for DataTable/DataRow:
+**RecordSet** - efficient replacement for DataTable/DataRow (API is very similar):
 ```
 var rs = dbAdapter.Select(new Query("Employees")).ToRecordSet();
 rs.SetPrimaryKey("EmployeeID");
@@ -64,12 +65,17 @@ foreach (var row in rs) {
 }
 dbAdapter.Update(rs);
 ```
-**Relex** - compact relational query expressions:
+**[Relex](https://github.com/nreco/data/wiki/Relex)** - compact relational query expressions:
 ```
+var relex = @"Employees(BirthDate>""1960-01-01"":datetime)[Name,BirthDate]"
 var relexParser = new NReco.Data.Relex.RelexParser();
-Query q = relexParser.Parse("Employees(BirthDate>"1960-01-01":datetime)[Name,BirthDate]");
+Query q = relexParser.Parse(relex);
 ```
 
 ## More examples
 * [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder) (includes code for batching inserts)
 * [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter)
+
+## License
+Copyright 2016 Vitaliy Fedorchenko
+Distributed under the MIT license
