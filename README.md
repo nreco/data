@@ -4,7 +4,7 @@ Lightweight data access components for generating SQL commands, mapping results 
 * abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query) (no need to compose raw SQL)
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
 * DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, multiple recordsets)
-* RecordSet structure for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
+* [RecordSet model](https://github.com/nreco/data/wiki/RecordSet) for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
 * DbDataAdapter for CRUD-operations, can map query results to POCO models, dictionaries and RecordSet
 * application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
@@ -14,6 +14,7 @@ Lightweight data access components for generating SQL commands, mapping results 
 * supports both full .NET Framework 4.x and .NET Core (netstandard1.5)
 
 Nuget package: [NReco.Data](https://www.nuget.org/packages/NReco.Data/)
+
 Documentation: [API Reference](http://www.nrecosite.com/doc/NReco.Data/)
 
 ## How to use 	
@@ -54,7 +55,7 @@ dbAdapter.Update(
 		{"LastName", "Wayne" }
 	});
 ```
-**RecordSet** - efficient replacement for DataTable/DataRow (API is very similar):
+**[RecordSet](https://github.com/nreco/data/wiki/RecordSet)** - efficient replacement for DataTable/DataRow (API is very similar):
 ```
 var rs = dbAdapter.Select(new Query("Employees")).ToRecordSet();
 rs.SetPrimaryKey("EmployeeID");
@@ -73,9 +74,10 @@ Query q = relexParser.Parse(relex);
 ```
 
 ## More examples
-* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder) (includes code for batching inserts)
-* [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter)
+* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder/Program.cs) (includes code for batching inserts)
+* [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs) (CRUD operations with dictionaries, POCO, recordsets)
 
 ## License
 Copyright 2016 Vitaliy Fedorchenko
+
 Distributed under the MIT license
