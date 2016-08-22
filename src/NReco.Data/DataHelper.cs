@@ -17,7 +17,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Data;
 using System.Data.Common;
 using System.IO;
@@ -82,6 +83,42 @@ namespace NReco.Data {
 					}
 				}
 			});
+		}
+
+		internal static async Task<T> ExecuteReaderAsync<T>(
+			IDbCommand cmd, CommandBehavior cmdBehaviour, 
+			int recordOffset, int recordCount, 
+			IDataReaderResult<T> result, CancellationToken cancel) {
+
+			var isOpenConn = cmd.Connection.State != ConnectionState.Closed;
+			if (!isOpenConn) {
+				await cmd.Connection.OpenAsync(cancel).ConfigureAwait(false);
+			}
+			IDataReader rdr = null;
+			try {
+				if (cmd is DbCommand) {
+					rdr = await ((DbCommand)cmd).ExecuteReaderAsync(cmdBehaviour, cancel).ConfigureAwait(false);
+				} else {
+					rdr = cmd.ExecuteReader(cmdBehaviour);
+				}
+
+				int index = 0;
+				int processed = 0;
+				while ( (await rdr.ReadAsync(cancel)) && processed < recordCount) {
+					if (index>=recordOffset) {
+						processed++;
+						result.Read(rdr);
+					}
+					index++;
+				}
+
+			} finally {
+				if (rdr!=null)
+					rdr.Dispose();
+				if (!isOpenConn)
+					cmd.Connection.Close();
+			}
+			return result.Result;
 		}
 
 		internal static RecordSet GetRecordSetByReader(IDataReader rdr) {

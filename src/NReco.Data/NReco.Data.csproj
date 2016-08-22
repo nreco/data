@@ -56,6 +56,12 @@
     <Compile Include="DbFactory.cs" />
     <Compile Include="IDbCommandBuilder.cs" />
     <Compile Include="IDbFactory.cs" />
+    <Compile Include="Internal\DbConnectionAsyncExt.cs" />
+    <Compile Include="Internal\DbCommandAsyncExt.cs" />
+    <Compile Include="Internal\DataReaderAsyncExt.cs" />
+    <Compile Include="Internal\DataReaderResult.cs" />
+    <Compile Include="Internal\DbDataAdapter.SelectQuery.cs" />
+    <Compile Include="Internal\RecordSetAdapter.cs" />
     <Compile Include="ISqlExpressionBuilder.cs" />
     <Compile Include="NetStandardCompatibility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

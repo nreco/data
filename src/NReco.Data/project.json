@@ -12,6 +12,7 @@
     "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
   },
   "buildOptions": {
+    "keyFile": "NReco.Data.snk", 
     "xmlDoc": true
   },
   "supports": {},

@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -58,6 +58,22 @@ namespace NReco.Data.Tests {
 			Assert.Equal(2, contactsWithHightRS.Count );
 			Assert.Equal(5, contactsWithHightRS.Columns.Count );
 			Assert.Equal("Viola Garrett", contactsWithHightRS[0]["name"] );
+		}
+
+		[Fact]
+		public async Task Select_Async() {
+			// count: table
+			Assert.Equal(5, await DbAdapter.Select(new Query("contacts").Select(QField.Count) ).SingleAsync<int>() );
+			
+			var contactsWithHighScoreQuery = DbAdapter.Select(
+				new Query("contacts_view", (QField)"score" > (QConst)4 ).OrderBy("name desc")
+			);
+			
+			var contactsWithHighDicts = await contactsWithHighScoreQuery.ToDictionaryListAsync();
+			Assert.Equal(2, contactsWithHighDicts.Count );	
+			
+			var contactsWithHightRS = await contactsWithHighScoreQuery.ToRecordSetAsync();
+			Assert.Equal(2, contactsWithHightRS.Count );											
 		}
 
 		[Fact]
@@ -122,6 +138,32 @@ namespace NReco.Data.Tests {
 
 			Assert.Equal(2, companyRS.Count);
 			Assert.Equal(2, DbAdapter.Select(new Query("companies").Select(QField.Count) ).Single<int>() );
+		}
+
+		[Fact]
+		public async Task InsertUpdateDeleteAsync_RecordSet() {
+			var companyRS = await DbAdapter.Select(new Query("companies")).ToRecordSetAsync().ConfigureAwait(false);
+			Assert.Equal(2, companyRS.Count);
+			companyRS.SetPrimaryKey("id");
+			companyRS.Columns["id"].AutoIncrement = true;
+			
+			var newCompany1Row = companyRS.Add();
+			newCompany1Row["title"] = "Test Inc";
+			newCompany1Row["country"] = "Ukraine";
+
+			Assert.Equal(1, DbAdapter.UpdateAsync("companies", companyRS).GetAwaiter().GetResult() );
+
+			Assert.NotNull(newCompany1Row["id"]);
+			Assert.Equal( RecordSet.RowState.Unchanged, newCompany1Row.State );
+
+			newCompany1Row["title"] = "Mega Corp";
+			var newCompany2Row = companyRS.Add();
+			newCompany2Row["title"] = "Cool Inc";
+			newCompany2Row["country"] = "France";
+			
+			Assert.Equal(2, DbAdapter.UpdateAsync("companies", companyRS).GetAwaiter().GetResult() );
+			
+			Assert.Equal(2, await DbAdapter.DeleteAsync(new Query("companies", (QField)"id">= new QConst(newCompany1Row["id"]) )) );				
 		}
 		
 
