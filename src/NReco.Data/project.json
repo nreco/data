@@ -12,14 +12,14 @@
     "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
   },
   "buildOptions": {
-    "keyFile": "NReco.Data.snk", 
+
     "xmlDoc": true
   },
   "supports": {},
   "dependencies": {
   },
   "frameworks": {
-    "net40": {
+    "net45": {
       "frameworkAssemblies": {
         "System.Data": ""
       },

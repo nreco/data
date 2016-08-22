@@ -29,7 +29,11 @@ namespace NReco.Data {
 				return ((DbConnection)conn).OpenAsync(cancel);
 			} else {
 				conn.Open();
+				#if NET_STANDARD
 				return Task.CompletedTask;
+				#else
+				return Task.FromResult(true);
+				#endif
 			}
 		}
 
