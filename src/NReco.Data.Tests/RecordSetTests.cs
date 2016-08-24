@@ -128,7 +128,7 @@ namespace NReco.Data.Tests
 			Assert.Equal(100, cnt);
 
 			// read RS from RecordSetReader
-			var testRSCopy = new RecordSet( new RecordSetReader(testRS) );
+			var testRSCopy = RecordSet.FromReader( new RecordSetReader(testRS) );
 			Assert.Equal( testRS.Count, testRSCopy.Count );
 			Assert.Equal( testRS.Columns.Count, testRSCopy.Columns.Count );
 

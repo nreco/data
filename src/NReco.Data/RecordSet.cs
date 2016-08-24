@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Data;
 
@@ -57,15 +58,6 @@ namespace NReco.Data {
 		/// </summary>
 		/// <param name="columns">columns array</param>
 		public RecordSet(Column[] columns) : this(columns, 1) {
-		}
-
-		/// <summary>
-		/// Initializes a new instance of <see cref="RecordSet"/> with schema and data from specified <see cref="IDataReader"/>.
-		/// </summary>		 
-		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
-		public RecordSet(IDataReader rdr) {
-			Rows = new List<Row>();
-			LoadInternal(rdr,true);
 		}
 
 		/// <summary>
@@ -212,19 +204,10 @@ namespace NReco.Data {
 		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
 		/// <returns>Number of loaded rows.</returns>
 		public int Load(IDataReader rdr) {
-			return LoadInternal(rdr, false);
-		}
-
-		int LoadInternal(IDataReader rdr, bool initColumns) {
 			int processed = 0;
 			while (rdr.Read()) {
 				Tuple<int,int>[] rdrToRsColIdx = null;
-				if (initColumns && columns==null) {
-					var rs = DataHelper.GetRecordSetByReader(rdr);
-					columns = rs.Columns;
-					PrimaryKey = rs.PrimaryKey;
-				}
-				if (!initColumns && rdrToRsColIdx==null) {
+				if (rdrToRsColIdx==null) {
 					var rdrToRsColIdxList = new List<Tuple<int, int>>();
 					for (int i=0; i<rdr.FieldCount; i++) {
 						var colName = rdr.GetName(i);
@@ -235,21 +218,59 @@ namespace NReco.Data {
 				}
 
 				processed++;
-				if (initColumns) {
-					// just copy values
-					var rowValues = new object[rdr.FieldCount];
-					rdr.GetValues(rowValues);
-					this.Add(rowValues).AcceptChanges();
-				} else {
-					var r = this.Add();
-					for (int i=0; i<rdrToRsColIdx.Length; i++) {
-						var t = rdrToRsColIdx[i];
-						r[ t.Item2 ] = rdr.GetValue(t.Item1);
-					}
-					r.AcceptChanges();
+
+				var r = this.Add();
+				for (int i=0; i<rdrToRsColIdx.Length; i++) {
+					var t = rdrToRsColIdx[i];
+					r[ t.Item2 ] = rdr.GetValue(t.Item1);
 				}
+				r.AcceptChanges();
+
 			}
 			return processed;
+		}
+
+		/// <summary>
+		/// Creates a <see cref="RecordSet"/> from a data source using the supplied <see cref="IDataReader"/>.
+		/// </summary>
+		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
+		/// <returns><see cref="RecordSet"/> with schema inferred by reader and populated with incoming data.</returns>
+		public static RecordSet FromReader(IDataReader rdr) {
+			RecordSet rs = null;
+			while (rdr.Read()) {
+				if (rs==null) {
+					rs = DataHelper.GetRecordSetByReader(rdr);
+				}
+				// just copy values
+				var rowValues = new object[rdr.FieldCount];
+				rdr.GetValues(rowValues);
+				rs.Add(rowValues).AcceptChanges();
+			}
+			return rs;
+		}
+
+		/// <summary>
+		/// Asynchronously creates a <see cref="RecordSet"/> from a data source using the supplied <see cref="IDataReader"/>.
+		/// </summary>
+		public static Task<RecordSet> FromReaderAsync(IDataReader rdr) {
+			return FromReaderAsync(rdr, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Asynchronously creates a <see cref="RecordSet"/> from a data source using the supplied <see cref="IDataReader"/>.
+		/// </summary>
+		public static async Task<RecordSet> FromReaderAsync(IDataReader rdr, CancellationToken cancel) {
+			RecordSet rs = null;
+			while (await rdr.ReadAsync(cancel).ConfigureAwait(false)) {
+				if (rs==null) {
+					rs = DataHelper.GetRecordSetByReader(rdr);
+				}
+				// just copy values
+				var rowValues = new object[rdr.FieldCount];
+				await rdr.GetValuesAsync(rowValues, cancel).ConfigureAwait(false);
+				rs.Add(rowValues).AcceptChanges();
+			}
+			return rs;
 		}
 
 		/// <summary>

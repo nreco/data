@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-alpha4",
+  "version": "1.0.0-alpha5",
   "title": "NReco.Data",
   "description": "Lightweight db-independent DAL for generating SQL commands by abstract queries, schema-less CRUD operations, POCO mapping.",
   "authors": [ "Vitalii Fedorchenko" ],
@@ -7,7 +7,7 @@
   "packOptions": {
     "owners": [ "Vitalii Fedorchenko" ],
     "projectUrl": "http://www.nrecosite.com/dalc_net.aspx",
-    "tags": [ "DAL", "ado.net", "data", "relex", "sql", "query", "recordset", "generator", "batch", "database", "micro-orm", "data-mapper", "poco", "schema-less", "netstandard", "netcore", "net40", "net45" ],
+    "tags": [ "DAL", "ado.net", "data", "relex", "sql", "query", "recordset", "generator", "batch", "database", "micro-orm", "data-mapper", "poco", "schema-less", "netstandard", "netcore", "net45" ],
     "licenseUrl": "https://raw.githubusercontent.com/nreco/data/master/LICENSE",
     "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
   },

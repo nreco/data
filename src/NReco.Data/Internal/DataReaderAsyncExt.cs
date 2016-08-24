@@ -32,6 +32,14 @@ namespace NReco.Data {
 			}
 		}
 
+		internal static Task<int> GetValuesAsync(this IDataReader rdr, object[] values, CancellationToken cancel) {
+			if (rdr is DbDataReader) {
+				return ((DbDataReader)rdr).GetValuesAsync(values, cancel);
+			} else {
+				return Task.FromResult(rdr.GetValues(values));
+			}
+		}
+
 	}
 
 
