@@ -5,4 +5,5 @@ obj/
 *.user
 *.suo
 .vs
+*.nuget.targets
 *.lock.json

@@ -5,7 +5,7 @@ Lightweight data access components for generating SQL commands, mapping results 
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
 * DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, multiple recordsets)
 * [RecordSet model](https://github.com/nreco/data/wiki/RecordSet) for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
-* DbDataAdapter for CRUD-operations, can map query results to POCO models, dictionaries and RecordSet
+* DbDataAdapter for CRUD-operations, can map query results to POCO models, dictionaries and RecordSet (full async support)
 * application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 

@@ -32,7 +32,6 @@ namespace SqliteDemo.CommandBuilder
 
 			using (var conn = dbFactory.CreateConnection()) {
 				conn.ConnectionString = String.Format("Data Source={0}", sqliteDbPath);
-				conn.Open();
 
 				// simple helper class that holds DB context.
 				var dbContext = new DbContext() {
@@ -41,6 +40,7 @@ namespace SqliteDemo.CommandBuilder
 					DbFactory = dbFactory
 				};
 
+				conn.Open();
 				try {
 					RunSelect(dbContext);
 
@@ -58,15 +58,21 @@ namespace SqliteDemo.CommandBuilder
 					}
 					dbContext.Transaction = null;
 
-					RunDelete(dbContext);
-
 					// batch inserts: several SQL statements in one DbCommand
 					RunBatchInserts(dbContext);
+
+					RunDelete(dbContext);
+
 
 				} finally {
 					conn.Close();
 				}
+
+				// multiple result sets example
+				RunSelectMultipleResultSet(dbContext);
 			}
+
+
         }
 
 		static void RunSelect(DbContext dbContext) {
@@ -95,9 +101,9 @@ namespace SqliteDemo.CommandBuilder
 			dbContext.InitCommand(insertCmd);
 
 			Console.WriteLine("Inserting new record to 'Employees' table");
-			Console.WriteLine("Generated SQL: {0}", insertCmd.CommandText);
+			Console.WriteLine($"Generated SQL: {insertCmd.CommandText}");
 			var affected = insertCmd.ExecuteNonQuery();
-			Console.WriteLine("Done, affected: {0}", affected);
+			Console.WriteLine($"Done, affected: {affected}");
 			Console.WriteLine();
 		}
 
@@ -110,9 +116,9 @@ namespace SqliteDemo.CommandBuilder
 			dbContext.InitCommand(updateCmd);
 
 			Console.WriteLine("Updating just inserted record in 'Employees' table");
-			Console.WriteLine("Generated SQL: {0}", updateCmd.CommandText);
+			Console.WriteLine($"Generated SQL: {updateCmd.CommandText}");
 			var affected = updateCmd.ExecuteNonQuery();
-			Console.WriteLine("Done, affected: {0}", affected);
+			Console.WriteLine($"Done, affected: {affected}");
 			Console.WriteLine();
 		}
 
@@ -124,7 +130,7 @@ namespace SqliteDemo.CommandBuilder
 			Console.WriteLine("Deleting all records with EmployeeID >=100 from 'Employees' table");
 			Console.WriteLine("Generated SQL: {0}", deleteCmd.CommandText);
 			var affected = deleteCmd.ExecuteNonQuery();
-			Console.WriteLine("Done, affected: {0}", affected);
+			Console.WriteLine($"Done, affected: {affected}");
 			Console.WriteLine();
 		}
 
@@ -143,7 +149,7 @@ namespace SqliteDemo.CommandBuilder
 			var insertRecords = new List<Dictionary<string,object>>();
 			for (int i=0; i<insertsCount; i++) {
 				insertRecords.Add( new Dictionary<string, object>() {
-					{ "EmployeeID", 1000+i },
+					{ "EmployeeID", 1001+i },
 					{ "FirstName", "First"+i.ToString() },
 					{ "LastName", "Last"+i.ToString() }
 				} );
@@ -169,19 +175,53 @@ namespace SqliteDemo.CommandBuilder
 					startIdx += batchSize;
 
 					if ( (startIdx%1000)==0 )
-						Console.WriteLine("Inserted {0} records...", startIdx);
+						Console.WriteLine($"Inserted {startIdx} records...");
 				}
 				tr.Commit();
 			}
 
 			sw.Stop();
 
-			Console.WriteLine("Inserted {0} records in {1}", insertsCount, sw.Elapsed);
+			Console.WriteLine($"Inserted {insertsCount} records in {sw.Elapsed}");
 			
 			// ensure that records are really inserted
 			var employeesCountCmd = dbContext.CommandBuilder.GetSelectCommand(new Query("Employees").Select(QField.Count) );
 			employeesCountCmd.Connection = dbContext.Connection;
 			Console.WriteLine("Number of records in 'Employees' table: {0}", employeesCountCmd.ExecuteScalar() );
+		}
+
+
+		public static void RunSelectMultipleResultSet(DbContext dbContext) {
+			// lets generate several selects in one command
+			var batchCmdBuilder = new DbBatchCommandBuilder(dbContext.DbFactory);
+
+			Console.WriteLine("Composing 2 selects in one DbCommand (multiple result sets)");
+			batchCmdBuilder.BeginBatch();
+
+			batchCmdBuilder.GetSelectCommand(new Query("Customers", (QField)"Country" == (QConst)"Germany" ));
+			batchCmdBuilder.GetSelectCommand(new Query("Orders",
+				new QConditionNode((QField)"CustomerID", Conditions.In,
+					new Query("Customers.c", (QField)"c.Country" == (QConst)"Germany" ).Select("c.CustomerID")
+				)
+			));
+
+			var multiSelectCmd = batchCmdBuilder.EndBatch();
+			multiSelectCmd.Connection = dbContext.Connection;
+
+			RecordSet customerRS = null;
+			RecordSet orderRS = null;
+			dbContext.Connection.Open();
+			try {
+				using (var rdr = multiSelectCmd.ExecuteReader()) {
+					customerRS = RecordSet.FromReader(rdr);
+					if (rdr.NextResult())
+						orderRS = RecordSet.FromReader(rdr);
+				}
+			} finally {
+				dbContext.Connection.Close();
+			}
+
+			Console.WriteLine($"Loaded {customerRS.Count} customers and {orderRS.Count} their orders from one data reader");
 		}
 
 

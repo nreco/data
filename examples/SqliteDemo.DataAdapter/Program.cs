@@ -47,7 +47,7 @@ namespace SqliteDemo.DataAdapter
 		public static void SelectDemo(DbDataAdapter dbAdapter) {
 			// select single value
 			Console.WriteLine("Records count in 'Employees' table: {0}",
-					dbAdapter.Select( new Query("Employees").Select( QField.Count ) ).First<int>()
+					dbAdapter.Select( new Query("Employees").Select( QField.Count ) ).Single<int>()
 				);
 
 			// select data into POCO models (columns are mapped to object properties)
@@ -104,7 +104,7 @@ namespace SqliteDemo.DataAdapter
 			dbAdapter.Update( newEmployeeByIdQuery, newEmployee);
 
 			Console.WriteLine("New first name for EmployeeID=1000: {0}", 
-				dbAdapter.Select( new Query("Employees", (QField)"EmployeeID"==(QConst)1000).Select("FirstName") ).First<string>() );
+				dbAdapter.Select( new Query("Employees", (QField)"EmployeeID"==(QConst)1000).Select("FirstName") ).Single<string>() );
 
 			// update employee by dictionary
 			dbAdapter.Update( 
@@ -137,7 +137,7 @@ namespace SqliteDemo.DataAdapter
 			var customersRS = dbAdapter.Select( 
 					new Query("Customers").OrderBy("CustomerID asc")
 				).ToRecordSet();			
-			Console.WriteLine("Loaded {0} customer records ({1} columns)", customersRS.Count, customersRS.Columns.Length);
+			Console.WriteLine("Loaded {0} customer records ({1} columns)", customersRS.Count, customersRS.Columns.Count);
 
 			// in most cases primary key should be set explicetly
 			customersRS.SetPrimaryKey("CustomerID");
@@ -157,7 +157,7 @@ namespace SqliteDemo.DataAdapter
 					deleteRows++;
 				}
 			// lets add one customer from Ukraine
-			var uaCustomer = customersRS.NewRow();
+			var uaCustomer = customersRS.Add();
 			uaCustomer["CompanyName"] = "MegaSuperAwsome Inc";
 			uaCustomer["CustomerID"] = "MEGAUA";
 			uaCustomer["Country"] = "Ukraine";
@@ -171,7 +171,7 @@ namespace SqliteDemo.DataAdapter
 					
 					dbAdapter.Update("Customers", customersRS);		
 					
-					Console.WriteLine("Customers count={0}", dbAdapter.Select(new Query("Customers").Select(QField.Count) ).First<int>() );
+					Console.WriteLine("Customers count={0}", dbAdapter.Select(new Query("Customers").Select(QField.Count) ).Single<int>() );
 
 					// lets throw an exception
 					throw new Exception("Rollback Test");
