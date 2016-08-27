@@ -94,14 +94,14 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously returns dictionary with first record values.
 			/// </summary>
-			public Task<Dictionary<string,object>> ToDictionaryAsync<T>() {
-				return ToDictionaryAsync<Dictionary<string,object>>(CancellationToken.None);
+			public Task<Dictionary<string,object>> ToDictionaryAsync() {
+				return ToDictionaryAsync(CancellationToken.None);
 			}
 
 			/// <summary>
 			/// Asynchronously returns dictionary with first record values.
 			/// </summary>
-			public Task<Dictionary<string,object>> ToDictionaryAsync<T>(CancellationToken cancel) {
+			public Task<Dictionary<string,object>> ToDictionaryAsync(CancellationToken cancel) {
 				return DataHelper.ExecuteReaderAsync<Dictionary<string,object>>(
 					SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
 					new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
