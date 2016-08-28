@@ -76,6 +76,7 @@ Query q = relexParser.Parse(relex);
 ## More examples
 * [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder/Program.cs) (includes code for batching inserts)
 * [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs) (CRUD operations with dictionaries, POCO, recordsets)
+* [DB WebApi](https://github.com/nreco/data/tree/master/examples/SqliteDemo.WebApi) (configures NReco.Data services, simple REST API for database tables)
 
 ## License
 Copyright 2016 Vitaliy Fedorchenko
