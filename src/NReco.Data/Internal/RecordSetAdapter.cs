@@ -23,7 +23,7 @@ using System.Data.Common;
 namespace NReco.Data {
 
 
-	internal class RecordSetAdapter {
+	internal class RecordSetAdapter : IDisposable {
 		RecordSet RS;
 		DbDataAdapter DbAdapter;
 		string TableName;
@@ -167,7 +167,24 @@ namespace NReco.Data {
 			return affected;
 		}
 
-			
+		public void Dispose() {
+			RS = null;
+			DbAdapter = null;
+			setColumns = null;
+			autoIncrementCol = null;
+			if (InsertCmd!=null) {
+				InsertCmd.Dispose();
+				InsertCmd = null;
+			}
+			if (UpdateCmd!=null) {
+				UpdateCmd.Dispose();
+				UpdateCmd = null;
+			}
+			if (DeleteCmd!=null) {
+				DeleteCmd.Dispose();
+				DeleteCmd = null;
+			}
+		}	
 
 	}
 

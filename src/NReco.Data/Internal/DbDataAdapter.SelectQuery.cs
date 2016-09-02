@@ -29,13 +29,11 @@ namespace NReco.Data {
 		/// </summary>
 		public class SelectQuery {
 			DbDataAdapter Adapter;
-			IDbCommand SelectCommand;
 			Query Query;
 			IDictionary<string,string> FieldToPropertyMap;
 
-			internal SelectQuery(DbDataAdapter adapter, IDbCommand cmd, Query q, IDictionary<string,string> fldToPropMap) {
+			internal SelectQuery(DbDataAdapter adapter, Query q, IDictionary<string,string> fldToPropMap) {
 				Adapter = adapter;
-				SelectCommand = cmd;
 				Query = q;
 				FieldToPropertyMap = fldToPropMap;
 			}
@@ -46,16 +44,24 @@ namespace NReco.Data {
 				}
 			}
 
+			IDbCommand GetSelectCmd() {
+				var selectCmd = Adapter.CommandBuilder.GetSelectCommand(Query);
+				Adapter.InitCmd(selectCmd);
+				return selectCmd;
+			}
+
 			/// <summary>
 			/// Returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public T Single<T>() {
+			public T Single<T>() where T : new() {
 				T result = default(T);
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
-					(rdr) => {
-						result = Read<T>(rdr);
-					} );
+				using (var selectCmd = GetSelectCmd()) {
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
+						(rdr) => {
+							result = Read<T>(rdr);
+						} );
+				}
 				return result;
 			}
 
@@ -63,7 +69,7 @@ namespace NReco.Data {
 			/// Asynchronously returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>() {
+			public Task<T> SingleAsync<T>() where T : new() {
 				return SingleAsync<T>(CancellationToken.None);
 			}
 
@@ -71,10 +77,12 @@ namespace NReco.Data {
 			/// Asynchronously returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>(CancellationToken cancel) {
-				return DataHelper.ExecuteReaderAsync<T>(SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
-					new SingleDataReaderResult<T>( Read<T> ), cancel
-				);
+			public Task<T> SingleAsync<T>(CancellationToken cancel) where T : new() {
+				using (var selectCmd = GetSelectCmd()) {
+					return DataHelper.ExecuteReaderAsync<T>(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
+						new SingleDataReaderResult<T>( Read<T> ), cancel
+					);
+				}
 			}
 
 
@@ -84,10 +92,12 @@ namespace NReco.Data {
 			/// <returns>dictionary with field values or null if query returns zero records.</returns>
 			public Dictionary<string,object> ToDictionary() {
 				Dictionary<string,object> result = null;
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
-					(rdr) => {
-						result = ReadDictionary(rdr);
-					} );
+				using (var selectCmd = GetSelectCmd()) {
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
+						(rdr) => {
+							result = ReadDictionary(rdr);
+						} );
+				}
 				return result;
 			}
 
@@ -102,10 +112,12 @@ namespace NReco.Data {
 			/// Asynchronously returns dictionary with first record values.
 			/// </summary>
 			public Task<Dictionary<string,object>> ToDictionaryAsync(CancellationToken cancel) {
-				return DataHelper.ExecuteReaderAsync<Dictionary<string,object>>(
-					SelectCommand, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
-					new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
-				);
+				using (var selectCmd = GetSelectCmd()) {
+					return DataHelper.ExecuteReaderAsync<Dictionary<string,object>>(
+						selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
+						new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
+					);
+				}
 			}
 
 
@@ -127,38 +139,44 @@ namespace NReco.Data {
 			/// Asynchronously a list of dictionaries with all query results.
 			/// </summary>
 			public Task<List<Dictionary<string,object>>> ToDictionaryListAsync(CancellationToken cancel) {
-				return DataHelper.ExecuteReaderAsync<List<Dictionary<string,object>>>(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
-					new ListDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
-				);
+				using (var selectCmd = GetSelectCmd()) {
+					return DataHelper.ExecuteReaderAsync<List<Dictionary<string,object>>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+						new ListDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
+					);
+				}
 			}
 
 			/// <summary>
 			/// Returns a list with all query results.
 			/// </summary>
 			/// <returns>list with query results</returns>
-			public List<T> ToList<T>() {
+			public List<T> ToList<T>()  where T : new() {
 				var result = new List<T>();
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
-					(rdr) => {
-						result.Add( Read<T>(rdr) );
-					} );
+				using (var selectCmd = GetSelectCmd()) {
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+						(rdr) => {
+							result.Add( Read<T>(rdr) );
+						} );
+				}
 				return result;
 			}
 
 			/// <summary>
 			/// Asynchronously returns a list with all query results.
 			/// </summary>
-			public Task<List<T>> ToListAsync<T>() {
+			public Task<List<T>> ToListAsync<T>() where T : new() {
 				return ToListAsync<T>(CancellationToken.None);
 			}
 
 			/// <summary>
 			/// Asynchronously returns a list with all query results.
 			/// </summary>
-			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) {
-				return DataHelper.ExecuteReaderAsync<List<T>>(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
-					new ListDataReaderResult<T>( Read<T> ), cancel
-				);				
+			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) where T : new() {
+				using (var selectCmd = GetSelectCmd()) {
+					return DataHelper.ExecuteReaderAsync<List<T>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+						new ListDataReaderResult<T>( Read<T> ), cancel
+					);
+				}			
 			}
 
 			/// <summary>
@@ -166,8 +184,10 @@ namespace NReco.Data {
 			/// </summary>
 			public RecordSet ToRecordSet() {
 				var result = new RecordSetDataReaderResult();
-				DataHelper.ExecuteReader(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
-					result.Read );
+				using (var selectCmd = GetSelectCmd()) {
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+						result.Read );
+				}
 				return result.Result;
 			}
 
@@ -182,9 +202,11 @@ namespace NReco.Data {
 			/// Asynchronously returns all query results as <see cref="RecordSet"/>.
 			/// </summary>
 			public Task<RecordSet> ToRecordSetAsync(CancellationToken cancel) {
-				return DataHelper.ExecuteReaderAsync<RecordSet>(SelectCommand, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
-					new RecordSetDataReaderResult(), cancel
-				);					
+				using (var selectCmd = GetSelectCmd()) {
+					return DataHelper.ExecuteReaderAsync<RecordSet>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+						new RecordSetDataReaderResult(), cancel
+					);
+				}				
 			}
 
 			private T ChangeType<T>(object o, TypeCode typeCode) {
@@ -198,7 +220,7 @@ namespace NReco.Data {
 				return dictionary;
 			}
 
-			private T Read<T>(IDataReader rdr) {
+			private T Read<T>(IDataReader rdr) where T : new() {
 				var typeCode = Type.GetTypeCode(typeof(T));
 				// handle primitive single-value result
 				if (typeCode!=TypeCode.Object) {
@@ -217,7 +239,7 @@ namespace NReco.Data {
 					return (T)((object)ReadDictionary(rdr));
 				}
 				// handle as poco model
-				var res = Activator.CreateInstance(type);
+				var res = new T();
 				DataHelper.MapTo(rdr, res, FieldToPropertyMap);
 				return (T)res;
 			}
