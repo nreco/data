@@ -27,7 +27,7 @@ namespace NReco.Data {
 	/// <summary>
 	/// Data adapter between database and application data models. Implements select, insert, update and delete operations.
 	/// </summary>
-	public partial class DbDataAdapter {
+	public partial class DbDataAdapter : IRecordSetAdapter {
 
 		/// <summary>
 		/// Gets <see cref="IDbConnection"/> associated with this data adapter.
@@ -168,6 +168,15 @@ namespace NReco.Data {
 		void EnsurePrimaryKey(RecordSet recordSet) {
 			if (recordSet.PrimaryKey==null || recordSet.PrimaryKey.Length==0)
 				throw new NotSupportedException("Update operation can be performed only for RecordSet with PrimaryKey");
+		}
+
+
+		RecordSet IRecordSetAdapter.Select(Query q) {
+			return Select(q).ToRecordSet();
+		}
+
+		Task<RecordSet> IRecordSetAdapter.SelectAsync(Query q) {
+			return Select(q).ToRecordSetAsync();
 		}
 
 		/// <summary>

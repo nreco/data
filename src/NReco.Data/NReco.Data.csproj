@@ -55,6 +55,7 @@
     <Compile Include="DbSqlExpressionBuilder.cs" />
     <Compile Include="DbFactory.cs" />
     <Compile Include="IDbCommandBuilder.cs" />
+    <Compile Include="IRecordSetAdapter.cs" />
     <Compile Include="IDbFactory.cs" />
     <Compile Include="Internal\DbConnectionAsyncExt.cs" />
     <Compile Include="Internal\DbCommandAsyncExt.cs" />
