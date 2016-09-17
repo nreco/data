@@ -59,7 +59,7 @@ namespace NReco.Data {
 			CommandBuilder = cmdBuilder;
 		}
 
-		private void InitCmd(IDbCommand cmd) {
+		private void SetupCmd(IDbCommand cmd) {
 			cmd.Connection = Connection;
 			if (Transaction!=null)
 				cmd.Transaction = Transaction;
@@ -71,7 +71,7 @@ namespace NReco.Data {
 		/// <param name="q">query to execute</param>
 		/// <returns>prepared select query</returns>
 		public SelectQuery Select(Query q) {
-			return new SelectQuery(this, q, null);
+			return new SelectQueryByQuery(this, q, null);
 		}
 
 		/// <summary>
@@ -80,12 +80,29 @@ namespace NReco.Data {
 		/// <param name="q">query to execute</param>
 		/// <returns>prepared select query</returns>
 		public SelectQuery Select(Query q, IDictionary<string,string> fieldToPropertyMap) {
-			return new SelectQuery(this, q, fieldToPropertyMap);
+			return new SelectQueryByQuery(this, q, fld => fieldToPropertyMap.ContainsKey(fld) ? fieldToPropertyMap[fld] : null );
+		}
+
+		/// <summary>
+		/// Creates a <see cref="SelectQuery"/> based on a raw SQL query.
+		/// </summary>
+		/// <param name="sql">The raw SQL query.</param>
+		/// <param name="parameters">The values to be assigned to parameters.</param>
+		/// <returns>prepared select query</returns>
+		/// <remarks>Semantics of this method is similar to EF Core DbSet.FromSql. Any parameter values you supply will automatically be converted to a DbParameter:
+		/// <code>dbAdapter.Select("SELECT * FROM [dbo].[SearchBlogs]({0})", userSuppliedSearchTerm).ToRecordSet()</code>.
+		/// <para>You can also construct a DbParameter and supply it to as a parameter value. This allows you to use named
+        /// parameters in the SQL query string - 
+		/// <code>dbAdapter.Select("SELECT * FROM [dbo].[SearchBlogs]({@searchTerm})", new SqlParameter("@searchTerm", userSuppliedSearchTerm)).ToRecordSet()</code>
+		/// </para>
+		/// </remarks>
+		public SelectQuery Select(string sql, params object[] parameters) {
+			return new SelectQueryBySql(this, sql, parameters, null);
 		}
 
 		int InsertInternal(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
 			using (var insertCmd = CommandBuilder.GetInsertCommand(tableName, data)) {
-				InitCmd(insertCmd);
+				SetupCmd(insertCmd);
 				return ExecuteNonQuery(insertCmd);
 			}
 		}
@@ -124,7 +141,7 @@ namespace NReco.Data {
 		
 		int UpdateInternal(Query q, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
 			using (var updateCmd = CommandBuilder.GetUpdateCommand(q, data)) {
-				InitCmd(updateCmd);
+				SetupCmd(updateCmd);
 				return ExecuteNonQuery(updateCmd);
 			}
 		}
@@ -236,7 +253,7 @@ namespace NReco.Data {
 		/// <returns>Number of actually deleted records.</returns>
 		public int Delete(Query q) {
 			using (var deleteCmd = CommandBuilder.GetDeleteCommand(q)) {
-				InitCmd(deleteCmd);
+				SetupCmd(deleteCmd);
 				return ExecuteNonQuery(deleteCmd);
 			}
 		}
@@ -254,7 +271,7 @@ namespace NReco.Data {
 		public async Task<int> DeleteAsync(Query q, CancellationToken cancel) {
 			int affected = 0;
 			using (var deleteCmd = CommandBuilder.GetDeleteCommand(q)) {
-				InitCmd(deleteCmd);
+				SetupCmd(deleteCmd);
 				var isClosedConn = deleteCmd.Connection.State == ConnectionState.Closed;
 				if (isClosedConn) {
 					await deleteCmd.Connection.OpenAsync(cancel).ConfigureAwait(false);

@@ -77,6 +77,19 @@ namespace NReco.Data.Tests {
 		}
 
 		[Fact]
+		public void SelectRawSql() {
+			//no params
+			Assert.Equal(5, DbAdapter.Select("select count(*) from contacts").Single<int>() );
+			// simple param
+			Assert.Equal(5, DbAdapter.Select("select count(*) from contacts where id<{0}", 100).Single<int>() );
+			Assert.Equal(1, DbAdapter.Select("select count(*) from contacts where id>{0} and id<{1}", 1, 3).Single<int>() );
+
+			// custom db param
+			var customParam = new Microsoft.Data.Sqlite.SqliteParameter("test", "%John%");
+			Assert.Equal(1, DbAdapter.Select("select company_id from contacts where name like @test", customParam).Single<int>() );
+		}
+
+		[Fact]
 		public void InsertUpdateDelete_Dictionary() {
 			// insert
 			object recordId = null;

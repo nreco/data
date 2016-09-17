@@ -154,13 +154,13 @@ namespace NReco.Data {
 			return rs;
 		}
 
-		internal static void MapTo(IDataRecord record, object o, IDictionary<string,string> fieldToPropertyMap) {
+		internal static void MapTo(IDataRecord record, object o, Func<string,string> getPropertyName) {
 			var type = o.GetType();
 			for (int i = 0; i < record.FieldCount; i++) {
 				var fieldName = record.GetName(i);
 				var fieldValue = record.GetValue(i);
 				
-				var propName = fieldToPropertyMap!=null && fieldToPropertyMap.ContainsKey(fieldName) ? fieldToPropertyMap[fieldName] : fieldName;
+				var propName = (getPropertyName!=null ? getPropertyName(fieldName) : null) ?? fieldName;
 				var pInfo =type.GetProperty(propName);
 				if (pInfo!=null) {
 					if (IsNullOrDBNull(fieldValue)) {

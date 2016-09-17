@@ -27,28 +27,28 @@ namespace NReco.Data {
 		/// <summary>
 		/// Represents select query (returned by <see cref="DbDataAdapter.Select"/> method).
 		/// </summary>
-		public class SelectQuery {
-			DbDataAdapter Adapter;
-			Query Query;
-			IDictionary<string,string> FieldToPropertyMap;
+		public abstract class SelectQuery {
+			readonly protected DbDataAdapter Adapter;
+			Func<string,string> FieldToPropertyMapper;
 
-			internal SelectQuery(DbDataAdapter adapter, Query q, IDictionary<string,string> fldToPropMap) {
+			internal SelectQuery(DbDataAdapter adapter, Func<string,string> fldToPropMapper) {
 				Adapter = adapter;
-				Query = q;
-				FieldToPropertyMap = fldToPropMap;
+				FieldToPropertyMapper = fldToPropMapper;
 			}
 
 			int DataReaderRecordOffset {
 				get {
-					return Adapter.ApplyOffset ? Query.RecordOffset : 0;
+					return Adapter.ApplyOffset ? RecordOffset : 0;
 				}
 			}
 
-			IDbCommand GetSelectCmd() {
-				var selectCmd = Adapter.CommandBuilder.GetSelectCommand(Query);
-				Adapter.InitCmd(selectCmd);
-				return selectCmd;
-			}
+			protected virtual int RecordOffset { get { return 0; } }
+
+			protected virtual int RecordCount { get { return Int32.MaxValue; } }
+
+			protected abstract IDbCommand GetSelectCmd();
+
+			protected virtual string FirstFieldName { get { return null; } }
 
 			/// <summary>
 			/// Returns the first record from the query result. 
@@ -140,7 +140,7 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<List<Dictionary<string,object>>> ToDictionaryListAsync(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<List<Dictionary<string,object>>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					return DataHelper.ExecuteReaderAsync<List<Dictionary<string,object>>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						new ListDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
 					);
 				}
@@ -153,7 +153,7 @@ namespace NReco.Data {
 			public List<T> ToList<T>()  where T : new() {
 				var result = new List<T>();
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						(rdr) => {
 							result.Add( Read<T>(rdr) );
 						} );
@@ -173,7 +173,7 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) where T : new() {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<List<T>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					return DataHelper.ExecuteReaderAsync<List<T>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						new ListDataReaderResult<T>( Read<T> ), cancel
 					);
 				}			
@@ -185,7 +185,7 @@ namespace NReco.Data {
 			public RecordSet ToRecordSet() {
 				var result = new RecordSetDataReaderResult();
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						result.Read );
 				}
 				return result.Result;
@@ -203,7 +203,7 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<RecordSet> ToRecordSetAsync(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<RecordSet>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, Query.RecordCount,
+					return DataHelper.ExecuteReaderAsync<RecordSet>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						new RecordSetDataReaderResult(), cancel
 					);
 				}				
@@ -226,8 +226,10 @@ namespace NReco.Data {
 				if (typeCode!=TypeCode.Object) {
 					if (rdr.FieldCount==1) {
 						return ChangeType<T>( rdr[0], typeCode);
-					} else if (Query.Fields!=null && Query.Fields.Length>0) {
-						return ChangeType<T>( rdr[Query.Fields[0].Name], typeCode);
+					} else if (rdr.FieldCount>1) {
+						var firstFld = FirstFieldName;
+						var val = firstFld!=null ? rdr[firstFld] : rdr[0];
+						return ChangeType<T>( val, typeCode);
 					} else {
 						return default(T);
 					}
@@ -240,10 +242,73 @@ namespace NReco.Data {
 				}
 				// handle as poco model
 				var res = new T();
-				DataHelper.MapTo(rdr, res, FieldToPropertyMap);
+				DataHelper.MapTo(rdr, res, FieldToPropertyMapper);
 				return (T)res;
 			}
+		}
+		
+		internal class SelectQueryByQuery : SelectQuery {
+			
+			readonly Query Query;
+
+			internal SelectQueryByQuery(DbDataAdapter adapter, Query q, Func<string,string> fldToPropMapper) 
+				: base(adapter,fldToPropMapper) {
+				Query = q;
+			} 
+
+			protected override IDbCommand GetSelectCmd() {
+				var selectCmd = Adapter.CommandBuilder.GetSelectCommand(Query);
+				Adapter.SetupCmd(selectCmd);
+				return selectCmd;
+			}
+
+			protected override int RecordOffset { get { return Query.RecordOffset; } }
+
+			protected override int RecordCount { get { return Query.RecordCount; } }
+
+			protected override string FirstFieldName { 
+				get { 
+					return Query.Fields!=null && Query.Fields.Length>0 ? Query.Fields[0].Name : null; 
+				} 
+			}
+		}
+		
+		internal class SelectQueryBySql : SelectQuery {
+			
+			readonly string Sql;
+			object[] Parameters;
+
+			internal SelectQueryBySql(DbDataAdapter adapter, string sql, object[] parameters, Func<string,string> fldToPropMapper) 
+				: base(adapter,fldToPropMapper) {
+				Sql = sql;
+				Parameters = parameters;
+			} 
+
+			protected override IDbCommand GetSelectCmd() {
+				var selectCmd = Adapter.CommandBuilder.DbFactory.CreateCommand();
+
+				var fmtArgs = new string[Parameters.Length];
+				for (int i=0; i<Parameters.Length; i++) {
+					var paramVal = Parameters[i];
+					
+					if (paramVal is IDataParameter) {
+						// this is already composed command parameter
+						selectCmd.Parameters.Add(paramVal);
+						fmtArgs[i] = ((IDataParameter)paramVal).ParameterName;
+					} else {
+						var cmdParam = Adapter.CommandBuilder.DbFactory.AddCommandParameter(selectCmd, paramVal);
+						fmtArgs[i] = cmdParam.Placeholder;
+					}
+				}
+				selectCmd.CommandText = String.Format(Sql, fmtArgs);
+
+				Adapter.SetupCmd(selectCmd);
+				return selectCmd;
+			}
+
 		}		
+		
+			
 		
 	}
 }
