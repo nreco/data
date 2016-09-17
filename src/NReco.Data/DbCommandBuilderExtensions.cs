@@ -34,18 +34,12 @@ namespace NReco.Data {
 		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, object poco) {
 			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(poco, null) );
 		}
-		public static IDbCommand GetUpdateCommand(this IDbCommandBuilder cmdBuilder, Query q, object poco, IDictionary<string,string> propertyToFieldMap) {
-			return cmdBuilder.GetUpdateCommand(q, DataHelper.GetChangeset(poco, propertyToFieldMap) );
-		}
 
 		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, IDictionary<string,object> data) {
 			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(data) );
 		}
 		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, object poco) {
 			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(poco, null) );
-		}
-		public static IDbCommand GetInsertCommand(this IDbCommandBuilder cmdBuilder, string table, object poco, IDictionary<string,string> propertyToFieldMap) {
-			return cmdBuilder.GetInsertCommand(table, DataHelper.GetChangeset(poco, propertyToFieldMap) );
 		}
 
 	}

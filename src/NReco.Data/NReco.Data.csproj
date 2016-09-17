@@ -46,6 +46,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataMapper.cs" />
     <Compile Include="DataHelper.cs" />
     <Compile Include="DbBatchCommandBuilder.cs" />
     <Compile Include="DbCommandBuilder.cs" />

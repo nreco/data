@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.IO;
 
 namespace NReco.Data {
@@ -154,35 +155,6 @@ namespace NReco.Data {
 			return rs;
 		}
 
-		internal static void MapTo(IDataRecord record, object o, Func<string,string> getPropertyName) {
-			var type = o.GetType();
-			for (int i = 0; i < record.FieldCount; i++) {
-				var fieldName = record.GetName(i);
-				var fieldValue = record.GetValue(i);
-				
-				var propName = (getPropertyName!=null ? getPropertyName(fieldName) : null) ?? fieldName;
-				var pInfo =type.GetProperty(propName);
-				if (pInfo!=null) {
-					if (IsNullOrDBNull(fieldValue)) {
-						fieldValue = null;
-						if (Nullable.GetUnderlyingType(pInfo.PropertyType) == null && pInfo.PropertyType._IsValueType() )
-							fieldValue = Activator.CreateInstance(pInfo.PropertyType);
-					} else {
-						var propType = pInfo.PropertyType;
-						if (Nullable.GetUnderlyingType(propType) != null)
-							propType = Nullable.GetUnderlyingType(propType);
-
-						if (propType._IsEnum()) {
-							fieldValue = Enum.Parse(propType, fieldValue.ToString(), true); 
-						} else {
-							fieldValue = Convert.ChangeType(fieldValue, propType, System.Globalization.CultureInfo.InvariantCulture);
-						}
-					}
-					pInfo.SetValue(o, fieldValue, null);
-				}
-			}
-		}
-
 		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(IDictionary data) {
 			if (data == null)
 				yield break;
@@ -201,17 +173,17 @@ namespace NReco.Data {
 			}
 		}
 
-		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(object o, IDictionary<string,string> propertyToFieldMap) {
+		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(object o, DataMapper dtoMapper) {
 			if (o == null)
 				yield break;
 			var oType = o.GetType();
-			foreach (var p in oType.GetProperties()) {
-				var pVal = p.GetValue(o, null);
+			var schema = (dtoMapper??DataMapper.Instance).GetSchema(oType);
+			foreach (var columnMapping in schema.Columns) {
+				if (columnMapping.IsReadOnly || columnMapping.GetVal==null)
+					continue;
+				var pVal = columnMapping.GetVal(o);
 				var qVal = pVal is IQueryValue ? (IQueryValue)pVal : new QConst(pVal);
-				var fldName = p.Name;
-				if (propertyToFieldMap!=null)
-					if (!propertyToFieldMap.TryGetValue(fldName, out fldName))
-						continue;
+				var fldName = columnMapping.ColumnName;
 				yield return new KeyValuePair<string, IQueryValue>(fldName, qVal );
 			}
 		}

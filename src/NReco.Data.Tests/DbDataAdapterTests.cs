@@ -4,6 +4,8 @@ using System.Data.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using Xunit;
 
@@ -58,6 +60,12 @@ namespace NReco.Data.Tests {
 			Assert.Equal(2, contactsWithHightRS.Count );
 			Assert.Equal(5, contactsWithHightRS.Columns.Count );
 			Assert.Equal("Viola Garrett", contactsWithHightRS[0]["name"] );
+
+			// select to annotated object
+			var companies = DbAdapter.Select(new Query("companies").OrderBy("id")).ToList<CompanyModelAnnotated>();
+			Assert.Equal(2, companies.Count);
+			Assert.Equal("Microsoft", companies[0].Name);
+
 		}
 
 		[Fact]
@@ -178,6 +186,28 @@ namespace NReco.Data.Tests {
 			
 			Assert.Equal(2, await DbAdapter.DeleteAsync(new Query("companies", (QField)"id">= new QConst(newCompany1Row["id"]) )) );				
 		}
+
+		[Fact]
+		public void InsertUpdateDelete_PocoModel() {
+			// insert
+			var newCompany = new CompanyModelAnnotated();
+			newCompany.Id = 5000; // should be ignored
+			newCompany.Name = "Test Super Corp";
+			newCompany.registered = false; // should be ignored
+			DbAdapter.Insert("companies", newCompany);
+			
+			Assert.True(newCompany.Id.HasValue);
+			Assert.NotEqual(5000, newCompany.Id.Value);
+
+			Assert.Equal("Test Super Corp", DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
+			
+			newCompany.Name = "Super Corp updated";
+			Assert.Equal(1, DbAdapter.Update(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value ), newCompany) );
+
+			Assert.Equal(newCompany.Name, DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
+
+			Assert.Equal(1, DbAdapter.Delete( new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value )) );
+		}
 		
 
 		public class ContactModel {
@@ -185,6 +215,20 @@ namespace NReco.Data.Tests {
 			public string name { get; set; }
 			public int? company_id { get; set; }
 		}
+
+		public class CompanyModelAnnotated {
+			
+			[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+			[Key]
+			[Column("id")]
+			public int? Id { get; set; }
+			
+			[Column("title")]
+			public string Name { get; set; }
+			
+			[NotMapped]
+			public bool registered { get; set; }
+		}		
 		
 	}
 }

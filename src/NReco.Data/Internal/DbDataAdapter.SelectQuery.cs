@@ -29,11 +29,10 @@ namespace NReco.Data {
 		/// </summary>
 		public abstract class SelectQuery {
 			readonly protected DbDataAdapter Adapter;
-			Func<string,string> FieldToPropertyMapper;
+			internal DataMapper DtoMapper;
 
-			internal SelectQuery(DbDataAdapter adapter, Func<string,string> fldToPropMapper) {
+			internal SelectQuery(DbDataAdapter adapter) {
 				Adapter = adapter;
-				FieldToPropertyMapper = fldToPropMapper;
 			}
 
 			int DataReaderRecordOffset {
@@ -54,7 +53,7 @@ namespace NReco.Data {
 			/// Returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public T Single<T>() where T : new() {
+			public T Single<T>() {
 				T result = default(T);
 				using (var selectCmd = GetSelectCmd()) {
 					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
@@ -69,7 +68,7 @@ namespace NReco.Data {
 			/// Asynchronously returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>() where T : new() {
+			public Task<T> SingleAsync<T>() {
 				return SingleAsync<T>(CancellationToken.None);
 			}
 
@@ -77,7 +76,7 @@ namespace NReco.Data {
 			/// Asynchronously returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>(CancellationToken cancel) where T : new() {
+			public Task<T> SingleAsync<T>(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
 					return DataHelper.ExecuteReaderAsync<T>(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
 						new SingleDataReaderResult<T>( Read<T> ), cancel
@@ -150,7 +149,7 @@ namespace NReco.Data {
 			/// Returns a list with all query results.
 			/// </summary>
 			/// <returns>list with query results</returns>
-			public List<T> ToList<T>()  where T : new() {
+			public List<T> ToList<T>() {
 				var result = new List<T>();
 				using (var selectCmd = GetSelectCmd()) {
 					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
@@ -164,14 +163,14 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously returns a list with all query results.
 			/// </summary>
-			public Task<List<T>> ToListAsync<T>() where T : new() {
+			public Task<List<T>> ToListAsync<T>() {
 				return ToListAsync<T>(CancellationToken.None);
 			}
 
 			/// <summary>
 			/// Asynchronously returns a list with all query results.
 			/// </summary>
-			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) where T : new() {
+			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
 					return DataHelper.ExecuteReaderAsync<List<T>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
 						new ListDataReaderResult<T>( Read<T> ), cancel
@@ -220,7 +219,7 @@ namespace NReco.Data {
 				return dictionary;
 			}
 
-			private T Read<T>(IDataReader rdr) where T : new() {
+			private T Read<T>(IDataReader rdr) {
 				var typeCode = Type.GetTypeCode(typeof(T));
 				// handle primitive single-value result
 				if (typeCode!=TypeCode.Object) {
@@ -241,8 +240,8 @@ namespace NReco.Data {
 					return (T)((object)ReadDictionary(rdr));
 				}
 				// handle as poco model
-				var res = new T();
-				DataHelper.MapTo(rdr, res, FieldToPropertyMapper);
+				var res = Activator.CreateInstance<T>();
+				(DtoMapper??DataMapper.Instance).MapTo(rdr, res);
 				return (T)res;
 			}
 		}
@@ -251,8 +250,8 @@ namespace NReco.Data {
 			
 			readonly Query Query;
 
-			internal SelectQueryByQuery(DbDataAdapter adapter, Query q, Func<string,string> fldToPropMapper) 
-				: base(adapter,fldToPropMapper) {
+			internal SelectQueryByQuery(DbDataAdapter adapter, Query q) 
+				: base(adapter) {
 				Query = q;
 			} 
 
@@ -278,8 +277,8 @@ namespace NReco.Data {
 			readonly string Sql;
 			object[] Parameters;
 
-			internal SelectQueryBySql(DbDataAdapter adapter, string sql, object[] parameters, Func<string,string> fldToPropMapper) 
-				: base(adapter,fldToPropMapper) {
+			internal SelectQueryBySql(DbDataAdapter adapter, string sql, object[] parameters) 
+				: base(adapter) {
 				Sql = sql;
 				Parameters = parameters;
 			} 

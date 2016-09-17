@@ -81,7 +81,7 @@ namespace NReco.Data {
 
 		public virtual object GetInsertId(IDbConnection connection) {
 			if (String.IsNullOrEmpty(LastInsertIdSelectText)) {
-				throw new NotSupportedException("LastInsertIdSelectText is not defined");
+				return null;
 			}
 			if (connection.State != ConnectionState.Open)
 				throw new InvalidOperationException("GetInsertId requires opened connection");

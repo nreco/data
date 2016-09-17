@@ -21,7 +21,8 @@
   "frameworks": {
     "net45": {
       "frameworkAssemblies": {
-        "System.Data": ""
+        "System.Data": "",
+		"System.ComponentModel.DataAnnotations" : ""
       },
       "buildOptions": {
         "define": []
@@ -35,7 +36,8 @@
         "System.Reflection": "4.1.0",
         "System.Reflection.Primitives": "4.0.1",
         "System.Threading": "4.0.11",
-        "System.Threading.Tasks": "4.0.11"
+        "System.Threading.Tasks": "4.0.11",
+        "System.ComponentModel.Annotations": "4.1.0" 
       },
       "buildOptions": {
         "define": [ "NET_STANDARD" ]

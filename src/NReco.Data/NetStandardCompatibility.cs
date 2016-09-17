@@ -26,6 +26,9 @@ namespace NReco.Data {
 		internal static PropertyInfo[] GetProperties(this Type t) {
 			return t.GetTypeInfo().GetProperties();
 		} 
+		internal static FieldInfo[] GetFields(this Type t) {
+			return t.GetTypeInfo().GetFields();
+		} 
 		internal static PropertyInfo GetProperty(this Type t, string propName) {
 			return t.GetTypeInfo().GetProperty(propName);
 		}
