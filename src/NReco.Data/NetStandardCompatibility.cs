@@ -41,6 +41,9 @@ namespace NReco.Data {
 		internal static bool _IsEnum(this Type t) {
 			return t.GetTypeInfo().IsEnum;
 		}
+		internal static IEnumerable<Attribute> GetCustomAttributes(this Type t, bool inherit) {
+			return t.GetTypeInfo().GetCustomAttributes(inherit);
+		}
 	}
 #else
 	internal static class Net40Compatibility {

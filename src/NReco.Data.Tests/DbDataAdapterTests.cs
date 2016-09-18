@@ -194,7 +194,7 @@ namespace NReco.Data.Tests {
 			newCompany.Id = 5000; // should be ignored
 			newCompany.Name = "Test Super Corp";
 			newCompany.registered = false; // should be ignored
-			DbAdapter.Insert("companies", newCompany);
+			DbAdapter.Insert(newCompany);
 			
 			Assert.True(newCompany.Id.HasValue);
 			Assert.NotEqual(5000, newCompany.Id.Value);
@@ -202,11 +202,11 @@ namespace NReco.Data.Tests {
 			Assert.Equal("Test Super Corp", DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
 			
 			newCompany.Name = "Super Corp updated";
-			Assert.Equal(1, DbAdapter.Update(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value ), newCompany) );
+			Assert.Equal(1, DbAdapter.Update( newCompany) );
 
 			Assert.Equal(newCompany.Name, DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
 
-			Assert.Equal(1, DbAdapter.Delete( new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value )) );
+			Assert.Equal(1, DbAdapter.Delete( newCompany ) );
 		}
 		
 
@@ -216,6 +216,7 @@ namespace NReco.Data.Tests {
 			public int? company_id { get; set; }
 		}
 
+		[Table("companies")]
 		public class CompanyModelAnnotated {
 			
 			[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

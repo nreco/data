@@ -67,7 +67,9 @@ namespace NReco.Data {
 					keyCols.Add(colMapping);
 				cols.Add(colMapping);
 			}
-			return new PocoModelSchema(cols.ToArray(), keyCols.ToArray() );
+			var typeAttrs = t.GetCustomAttributes(true);
+			var tableAttr = typeAttrs.Where(a=>a is TableAttribute).Select(a=>(TableAttribute)a).FirstOrDefault();
+			return new PocoModelSchema( ( tableAttr?.Name ) ?? t.Name, cols.ToArray(), keyCols.ToArray() );
 		}
 
 		internal PocoModelSchema GetSchema(Type t) {
@@ -128,6 +130,8 @@ namespace NReco.Data {
 		}
 
 		internal class PocoModelSchema {
+			
+			internal readonly string TableName;
 
 			internal readonly ColumnMapping[] Key;
 
@@ -135,7 +139,8 @@ namespace NReco.Data {
 
 			Dictionary<string,ColumnMapping> ColNameMap;
 
-			internal PocoModelSchema(ColumnMapping[] cols, ColumnMapping[] key) {
+			internal PocoModelSchema(string tableName, ColumnMapping[] cols, ColumnMapping[] key) {
+				TableName = tableName;
 				Columns = cols;
 				Key = key;
 				ColNameMap = new Dictionary<string, ColumnMapping>(Columns.Length);
