@@ -50,7 +50,7 @@ namespace NReco.Data {
 				var colMapping = new ColumnMapping( 
 					metadata.Item1 ?? prop.Name, t, prop.Name, prop.PropertyType, 
 					prop.CanRead, prop.CanWrite,
-					metadata.Item4, metadata.Item5);
+					metadata.Item4, metadata.Item5, metadata.Item2);
 				if (metadata.Item2) // is key
 					keyCols.Add(colMapping);
 				cols.Add(colMapping);
@@ -62,7 +62,7 @@ namespace NReco.Data {
 				var colMapping = new ColumnMapping( 
 					metadata.Item1 ?? fld.Name, t, fld.Name, fld.FieldType, 
 					true, true,
-					metadata.Item4, metadata.Item5);
+					metadata.Item4, metadata.Item5, metadata.Item2);
 				if (metadata.Item2) // is key
 					keyCols.Add(colMapping);
 				cols.Add(colMapping);
@@ -167,15 +167,18 @@ namespace NReco.Data {
 
 			internal readonly bool IsIdentity;
 
+			internal readonly bool IsKey;
+
 			internal ColumnMapping(
 					string colName, Type t, 
 					string propOrFieldName, Type propOrFieldType, 
 					bool canRead, bool canWrite,
-					bool isReadOnly, bool isIdentity) {
+					bool isReadOnly, bool isIdentity, bool isKey) {
 				ColumnName = colName;
 				ValueType = propOrFieldType;
 				IsReadOnly = isReadOnly;
 				IsIdentity = isIdentity;
+				IsKey = isKey;
 
 				// compose get
 				if (canRead) {

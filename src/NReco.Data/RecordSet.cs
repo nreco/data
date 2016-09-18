@@ -250,6 +250,64 @@ namespace NReco.Data {
 		}
 
 		/// <summary>
+		/// Creates an empty <see cref="RecordSet"/> with schema inferred from the annotated object model.
+		/// </summary>
+		/// <typeparam name="T">annotated model type</typeparam>
+		/// <returns>empty <see cref="RecordSet"/></returns>
+		public static RecordSet FromModel<T>() {
+			return RecordSet.FromModel<T>(null, RowState.Added);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="RecordSet"/> with schema and row inferred from the annotated object model.
+		/// </summary>
+		/// <typeparam name="T">annotated model type</typeparam>
+		/// <param name="model">model instance</param>
+		/// <param name="rowState">intial state of row created by model</param>
+		/// <returns><see cref="RecordSet"/> with one row</returns>
+		public static RecordSet FromModel<T>(T model, RowState rowState) {
+			return RecordSet.FromModel<T>(new[] {model}, rowState);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="RecordSet"/> with schema and rows inferred from the annotated object models.
+		/// </summary>
+		/// <typeparam name="T">annotated model type</typeparam>
+		/// <param name="models">sequence of models</param>
+		/// <param name="rowState">intial state of rows created by models</param>
+		/// <returns><see cref="RecordSet"/> with rows</returns>
+		public static RecordSet FromModel<T>(IEnumerable<T> models, RowState rowState) {
+			var schema = DataMapper.Instance.GetSchema(typeof(T));
+			if (schema.Columns.Length==0)
+				throw new ArgumentException($"Model of type {typeof(T).Name} has no columns");
+			var rsCols = new Column[schema.Columns.Length];
+			var pkCols = new List<Column>(schema.Key.Length);
+			for (int i=0; i<rsCols.Length; i++) {
+				var modelCol = schema.Columns[i];
+				rsCols[i] = new Column(modelCol.ColumnName, modelCol.ValueType) {
+					AutoIncrement = modelCol.IsIdentity,
+					ReadOnly = modelCol.IsReadOnly
+				};
+				if (modelCol.IsKey)
+					pkCols.Add(rsCols[i]);
+			}
+			var rs = new RecordSet(rsCols);
+			rs.PrimaryKey = pkCols.ToArray();
+			if (models!=null) {
+				foreach (var dto in models) {
+					var rowData = new object[schema.Columns.Length];
+					for (int i=0; i<schema.Columns.Length; i++) {
+						var modelCol = schema.Columns[i];
+						if (modelCol.GetVal!=null)
+							rowData[i] = modelCol.GetVal(dto);
+					}
+					rs.Add(rowData).rowState = rowState;
+				}
+			}
+			return rs;
+		}
+
+		/// <summary>
 		/// Asynchronously creates a <see cref="RecordSet"/> from a data source using the supplied <see cref="IDataReader"/>.
 		/// </summary>
 		public static Task<RecordSet> FromReaderAsync(IDataReader rdr) {
@@ -341,7 +399,7 @@ namespace NReco.Data {
 					return rowState;
 				}
 			}
-			RowState rowState;
+			internal RowState rowState;
 			
 			RecordSet rs;
 			object[] values;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using Xunit;
 using NReco.Data;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NReco.Data.Tests
 {
@@ -143,6 +145,54 @@ namespace NReco.Data.Tests
 			Assert.Equal(testRS.Count, newRS.Count);
 			Assert.Equal("Name99", newRS[99].Field<string>("name"));
 		}
+
+		[Fact]
+		public void RecordSet_FromModel() {
+			
+			var rs1 = RecordSet.FromModel<PersonModel>();
+
+			Assert.Equal( 5, rs1.Columns.Count );
+			Assert.Equal( 1, rs1.PrimaryKey.Length );
+			Assert.Equal("id", rs1.PrimaryKey[0].Name );
+			Assert.True(rs1.PrimaryKey[0].AutoIncrement );
+			Assert.True(rs1.PrimaryKey[0].ReadOnly );   
+			
+			Assert.Equal("first_name", rs1.Columns[1].Name );
+			
+			var rs2 = RecordSet.FromModel( new PersonModel() { Id = 9, FirstName = "John" }, RecordSet.RowState.Modified );
+			Assert.Equal(1, rs2.Count);
+			Assert.Equal(9, rs2[0].Field<int>("id") );
+			Assert.Equal("John", rs2[0].Field<string>("first_name") );
+			Assert.Equal(RecordSet.RowState.Modified, rs2[0].State );
+		}
+
+
+		[Table("persons")]
+		public class PersonModel {
+			
+			[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+			[Key]
+			[Column("id")]
+			public int? Id { get; set; }
+			
+			[Column("first_name")]
+			public string FirstName { get; set; }
+
+			[Column("last_name")]
+			public string LastName { get; set; }
+			
+			[Column("birthday")]
+			public DateTime? BirthDay { get; set; }
+
+			// not annotated field
+			public bool Active;
+
+			[NotMapped]
+			public string Name { 
+				get { return $"{FirstName} {LastName}"; }
+			}
+		}
+
 
 	}
 }
