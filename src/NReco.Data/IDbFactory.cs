@@ -15,6 +15,8 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace NReco.Data
@@ -46,9 +48,14 @@ namespace NReco.Data
 		ISqlExpressionBuilder CreateSqlBuilder(IDbCommand dbCommand, Func<Query,string> buildSubquery);
 
 		/// <summary>
-		/// Get ID of last inserted record
+		/// Gets ID of last inserted record
 		/// </summary>
 		object GetInsertId(IDbConnection connection);
+
+		/// <summary>
+		/// Asynchronously gets ID of last inserted record
+		/// </summary>
+		Task<object> GetInsertIdAsync(IDbConnection connection, CancellationToken cancel);
 	}
 
 	public sealed class CommandParameter {

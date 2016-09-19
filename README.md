@@ -1,13 +1,16 @@
 # NReco.Data
-Lightweight data access components for generating SQL commands, mapping results to strongly typed POCO models or dictionaries, schema-less CRUD-operations. 
+Lightweight data access components for generating SQL commands, mapping results to strongly typed POCO models or dictionaries, schema-less CRUD-operations with RecordSet. 
 
 * abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query) (no need to compose raw SQL)
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
-* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, multiple recordsets)
+* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, select multiple recordsets)
 * [RecordSet model](https://github.com/nreco/data/wiki/RecordSet) for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
-* DbDataAdapter for CRUD-operations, can map query results to POCO models, dictionaries and RecordSet (full async support)
+* DbDataAdapter for CRUD-operations:
+ * supports annotated POCO models (like EF Core entity models)
+ * schema-less data access API (dictionaries / RecordSet) 
+ * async support for all methods
 * application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
-* best for schema-less DB access, dynamic DB queries, user-defined filters, reporting applications 
+* best for schema-less DB access, dynamic DB queries, user-defined filters; DAL can be used in addition to EF Core
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 
 * parser/builder for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
 * can be used with any existing ADO.NET data provider (MsSql, PostgreSql, Sqlite, MySql etc)
@@ -54,8 +57,10 @@ dbAdapter.Update(
 		{"FirstName", "Bruce" },
 		{"LastName", "Wayne" }
 	});
+// insert by model
+dbAdapter.Insert( "Employees", new { FirstName = "John", LastName = "Smith" } );  
 ```
-**[RecordSet](https://github.com/nreco/data/wiki/RecordSet)** - efficient replacement for DataTable/DataRow (API is very similar):
+**[RecordSet](https://github.com/nreco/data/wiki/RecordSet)** - efficient replacement for DataTable/DataRow with very similar API:
 ```
 var rs = dbAdapter.Select(new Query("Employees")).ToRecordSet();
 rs.SetPrimaryKey("EmployeeID");
@@ -65,6 +70,7 @@ foreach (var row in rs) {
 		row.Delete();
 }
 dbAdapter.Update(rs);
+var rsReader = new RecordSetReader(rs); // DbDataReader for in-memory rows
 ```
 **[Relex](https://github.com/nreco/data/wiki/Relex)** - compact relational query expressions:
 ```

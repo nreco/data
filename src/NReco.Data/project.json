@@ -1,7 +1,7 @@
 ﻿{
   "version": "1.0.0-alpha6",
   "title": "NReco.Data",
-  "description": "Lightweight db-independent data access library: generates SQL commands by abstract queries (command builder), schema-less CRUD operations (data adapter), POCO mapping, RecordSet (replacement for DataTable).",
+  "description": "Lightweight db-independent data access library: generates SQL commands by abstract queries (command builder), schema-less CRUD operations (data adapter), annotated POCO mapping, RecordSet (replacement for DataTable).",
   "authors": [ "Vitalii Fedorchenko" ],
   "copyright": "Copyright (c) 2016 Vitalii Fedorchenko",
   "packOptions": {

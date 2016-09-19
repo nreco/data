@@ -126,6 +126,34 @@ namespace NReco.Data.Tests {
 		}
 
 		[Fact]
+		public async Task InsertUpdateDelete_DictionaryAsync() {
+			// insert
+			DbAdapter.Connection.Open();
+			Assert.Equal(1,
+				await DbAdapter.InsertAsync("companies", new Dictionary<string,object>() {
+					{"title", "Test Inc"},
+					{"country", "Norway"}
+				}).ConfigureAwait(false) );				
+			object recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection); 
+			DbAdapter.Connection.Close();
+
+			// update
+			Assert.Equal(1, 
+				await DbAdapter.UpdateAsync( new Query("companies", (QField)"id"==new QConst(recordId) ), 
+					new Dictionary<string,object>() {
+						{"title", "Megacorp Inc"}
+					}
+				).ConfigureAwait(false) );
+
+			var norwayCompanyQ = new Query("companies", (QField)"country"==(QConst)"Norway" );
+
+			Assert.Equal("Megacorp Inc", DbAdapter.Select(norwayCompanyQ).ToDictionary()["title"]);
+
+			// cleanup
+			Assert.Equal(1, await DbAdapter.DeleteAsync( norwayCompanyQ ).ConfigureAwait(false) );
+		}
+
+		[Fact]
 		public void InsertUpdateDelete_RecordSet() {
 			
 			var companyRS = DbAdapter.Select(new Query("companies")).ToRecordSet();
@@ -209,6 +237,28 @@ namespace NReco.Data.Tests {
 			Assert.Equal(1, DbAdapter.Delete( newCompany ) );
 		}
 		
+		[Fact]
+		public async Task InsertUpdateDelete_PocoModelAsync() {
+			// insert
+			var newCompany = new CompanyModelAnnotated();
+			newCompany.Id = 5000; // should be ignored
+			newCompany.Name = "Test Super Corp";
+			newCompany.registered = false; // should be ignored
+			Assert.Equal(1, await DbAdapter.InsertAsync(newCompany).ConfigureAwait(false) );
+			
+			Assert.True(newCompany.Id.HasValue);
+			Assert.NotEqual(5000, newCompany.Id.Value);
+
+			Assert.Equal("Test Super Corp", DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
+			
+			newCompany.Name = "Super Corp updated";
+			Assert.Equal(1, await DbAdapter.UpdateAsync( newCompany).ConfigureAwait(false) );
+
+			Assert.Equal(newCompany.Name, DbAdapter.Select(new Query("companies", (QField)"id"==(QConst)newCompany.Id.Value).Select("title") ).Single<string>() );
+
+			Assert.Equal(1, await DbAdapter.DeleteAsync( newCompany ).ConfigureAwait(false) );
+		}
+
 
 		public class ContactModel {
 			public int? id { get; set; }

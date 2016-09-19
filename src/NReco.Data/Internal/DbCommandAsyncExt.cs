@@ -32,6 +32,14 @@ namespace NReco.Data {
 			}
 		}
 
+		internal static Task<object> ExecuteScalarAsync(this IDbCommand cmd, CancellationToken cancel) {
+			if (cmd is DbCommand) {
+				return ((DbCommand)cmd).ExecuteScalarAsync(cancel);
+			} else {
+				return Task.FromResult<object>( cmd.ExecuteScalar() );
+			}
+		}
+
 	}
 
 

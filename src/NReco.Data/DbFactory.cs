@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Data;
 using System.Data.Common;
 
@@ -89,6 +91,19 @@ namespace NReco.Data {
 				cmd.CommandText = LastInsertIdSelectText;
 				cmd.Connection = connection;
 				return cmd.ExecuteScalar();
+			}
+		}
+
+		public async Task<object> GetInsertIdAsync(IDbConnection connection, CancellationToken cancel) {
+			if (String.IsNullOrEmpty(LastInsertIdSelectText)) {
+				return null;
+			}
+			if (connection.State != ConnectionState.Open)
+				throw new InvalidOperationException("GetInsertId requires opened connection");
+			using (var cmd = CreateCommand()) {
+				cmd.CommandText = LastInsertIdSelectText;
+				cmd.Connection = connection;
+				return await cmd.ExecuteScalarAsync(cancel);
 			}
 		}
 

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NReco.Data")]
-[assembly: AssemblyDescription("Lightweight data access components for generating SQL commands by db-independent queries.")]
+[assembly: AssemblyDescription("Lightweight data access components for generating SQL commands by db-independent queries, CRUD operations.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("NReco.Data")]
