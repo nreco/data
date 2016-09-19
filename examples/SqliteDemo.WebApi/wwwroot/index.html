@@ -107,7 +107,7 @@ $.ajax("api/db/Products/100", {
         <h3>Delete row</h3>
         <div class="row">
             <div class="col-md-6">
-                <textarea class="form-control" id="addRow" rows="8">
+                <textarea class="form-control" id="delRow" rows="8">
 $.ajax("api/db/Products/100", {
     type: "DELETE"
 }).success(function (res) {
@@ -115,7 +115,7 @@ $.ajax("api/db/Products/100", {
 });
                 </textarea>
                 <br />
-                <a href="javascript:;" rel="addRow" class="btn btn-default run">Run</a>
+                <a href="javascript:;" rel="delRow" class="btn btn-default run">Run</a>
             </div>
             <div class="col-md-6">
                 <pre id="deleteRowResult" style="white-space:pre-wrap; max-height:150px;"></pre>

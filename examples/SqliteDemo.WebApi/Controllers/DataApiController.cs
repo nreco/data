@@ -39,43 +39,43 @@ namespace SqliteDemo.WebApi.Controllers
         // GET api/db/rows?relex=Products[*;ProductID asc]
         [HttpGet("rows")]
 		[HttpPost("rows")]
-        public Task<List<Dictionary<string,object>>> Get(string relex) {
+        public async Task<List<Dictionary<string,object>>> Get(string relex) {
             var relexParser = new NReco.Data.Relex.RelexParser();
 			var q = relexParser.Parse(relex);
 			CheckTable(q.Table.Name);
-			return DbAdapter.Select(q).ToDictionaryListAsync();
+			return await DbAdapter.Select(q).ToDictionaryListAsync().ConfigureAwait(false);
         }
 
         // GET api/db/Products/1
         [HttpGet("{table}/{id}")]
-        public Task<Dictionary<string,object>> Get(string table, string id)
+        public async Task<Dictionary<string,object>> Get(string table, string id)
         {
 			CheckTable(table);
 			var q = GetQueryByPk(table, id);
-            return DbAdapter.Select(q).ToDictionaryAsync<Dictionary<string,object>>();
+            return await DbAdapter.Select(q).ToDictionaryAsync().ConfigureAwait(false);
         }
 
         // POST api/db/Products
         [HttpPost("{table}")]
-        public bool Post(string table, [FromBody]IDictionary<string,object> values) {
+        public async Task<bool> Post(string table, [FromBody]IDictionary<string,object> values) {
 			CheckTable(table);
-			return DbAdapter.Insert(table, values)>0;
+			return await DbAdapter.InsertAsync(table, values).ConfigureAwait(false)>0;
 		}
 
         // PUT api/db/Products/1 + serialized json object in body
         [HttpPut("{table}/{id}")]
-        public bool Put(string table, string id, [FromBody]IDictionary<string,object> values) {
+        public async Task<bool> Put(string table, string id, [FromBody]IDictionary<string,object> values) {
 			CheckTable(table);
 			var q = GetQueryByPk(table, id);
-			return DbAdapter.Update(q, values)>0;
+			return await DbAdapter.UpdateAsync(q, values).ConfigureAwait(false)>0;
         }
 
         // DELETE api/db/Products/1
         [HttpDelete("{table}/{id}")]
-        public bool Delete(string table, string id) {
+        public async Task<bool> Delete(string table, string id) {
 			CheckTable(table);
 			var q = GetQueryByPk(table, id);
-			return DbAdapter.Delete(q)>0;
+			return await DbAdapter.DeleteAsync(q).ConfigureAwait(false)>0;
         }
     }
 }

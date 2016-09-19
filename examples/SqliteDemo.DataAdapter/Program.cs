@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using System.IO;
 
@@ -121,12 +123,7 @@ namespace SqliteDemo.DataAdapter
 			newEmployee.LastName = "Simpson";
 			newEmployee.FirstName = "Homer";
 
-			dbAdapter.Update(newEmployeeByIdQuery, newEmployee,  
-					// update takes only model properties that are specified in property-to-field mapping
-					new Dictionary<string,string>() {
-						{"LastName", "LastName"}
-					}
-				);
+			dbAdapter.Update(newEmployeeByIdQuery, new { LastName = "LastName" } );
 			
 			var newEmployeeNameFromDb = dbAdapter.Select( new Query(newEmployeeByIdQuery).Select("FirstName","LastName") ).ToDictionary();
 			Console.WriteLine("First+Last for EmployeeID=1000 after update: {0} {1}",
@@ -174,7 +171,7 @@ namespace SqliteDemo.DataAdapter
 					Console.WriteLine("Customers count={0}", dbAdapter.Select(new Query("Customers").Select(QField.Count) ).Single<int>() );
 
 					// lets throw an exception
-					throw new Exception("Rollback Test");
+					throw new Exception("Rollback Test!");
 
 					tr.Commit();
 				} catch (Exception ex) {
@@ -188,10 +185,17 @@ namespace SqliteDemo.DataAdapter
 		}
 
 		public class Employee {
+
+			[Key]
 			public int EmployeeID { get; set; }
 			public string FirstName { get; set; }
 			public string LastName { get; set; }
 			public DateTime? BirthDate { get; set; }
+
+			[NotMapped]
+			public string FullName {
+				get { return $"{FirstName} {LastName}"; }
+			}
 		}
     }
 }
