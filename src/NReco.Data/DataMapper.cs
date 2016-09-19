@@ -69,7 +69,7 @@ namespace NReco.Data {
 			}
 			var typeAttrs = t.GetCustomAttributes(true);
 			var tableAttr = typeAttrs.Where(a=>a is TableAttribute).Select(a=>(TableAttribute)a).FirstOrDefault();
-			return new PocoModelSchema( ( tableAttr?.Name ) ?? t.Name, cols.ToArray(), keyCols.ToArray() );
+			return new PocoModelSchema( ( tableAttr?.Name ) ?? t.Name, cols.ToArray(), keyCols.ToArray(), t );
 		}
 
 		internal PocoModelSchema GetSchema(Type t) {
@@ -106,12 +106,7 @@ namespace NReco.Data {
 			return new Tuple<string,bool,bool,bool,bool>(colName, isKey, isNotMapped, isDbGenerated, isIdentity);
 		}
 
-		internal void MapTo(IDataRecord record, object o) {
-			if (o==null)
-				return;
-			var type = o.GetType();
-			var schema = GetSchema(type);
-
+		internal void MapTo(IDataRecord record, object o, Type type, PocoModelSchema schema) {
 			for (int i = 0; i < record.FieldCount; i++) {
 				var fieldName = record.GetName(i);
 				var colMapping = schema.GetColumnMapping(fieldName);
@@ -123,10 +118,20 @@ namespace NReco.Data {
 				if (DataHelper.IsNullOrDBNull(fieldValue)) {
 					fieldValue = null;
 					if (Nullable.GetUnderlyingType(colMapping.ValueType) == null && colMapping.ValueType._IsValueType() )
-						fieldValue = Activator.CreateInstance(colMapping.ValueType); // slow: TBD faster way to get default(T)
+						fieldValue = colMapping.DefaultValue;
 				}
 				colMapping.SetValue(o, fieldValue);
 			}
+		}
+
+		internal T MapTo<T>(IDataRecord record) {
+			var type = typeof(T);
+			var schema = GetSchema(type);
+			if (schema.CreateModel==null)
+				throw new ArgumentException($"Type '{type.Name}' does not have a default constructor");	
+			var o = schema.CreateModel();
+			MapTo(record, o, type, schema);
+			return (T)o;
 		}
 
 		internal class PocoModelSchema {
@@ -137,15 +142,25 @@ namespace NReco.Data {
 
 			internal readonly ColumnMapping[] Columns;
 
+			internal readonly Type ModelType;
+
 			Dictionary<string,ColumnMapping> ColNameMap;
 
-			internal PocoModelSchema(string tableName, ColumnMapping[] cols, ColumnMapping[] key) {
+			internal Func<object> CreateModel;
+
+			internal PocoModelSchema(string tableName, ColumnMapping[] cols, ColumnMapping[] key, Type modelType) {
 				TableName = tableName;
 				Columns = cols;
 				Key = key;
 				ColNameMap = new Dictionary<string, ColumnMapping>(Columns.Length);
 				for (int i=0; i<Columns.Length; i++) {
 					ColNameMap[Columns[i].ColumnName] = Columns[i];
+				}
+				ModelType = modelType;
+
+				if (modelType.GetConstructor(Type.EmptyTypes)!=null) {
+					var createExpr = Expression.Lambda<Func<object>>( Expression.New(modelType) );
+					CreateModel = createExpr.Compile();
 				}
 			}
 
@@ -169,6 +184,11 @@ namespace NReco.Data {
 
 			internal readonly bool IsKey;
 
+			internal object DefaultValue;
+
+			readonly Type ConvertToType;
+			readonly bool IsEnum;
+
 			internal ColumnMapping(
 					string colName, Type t, 
 					string propOrFieldName, Type propOrFieldType, 
@@ -179,6 +199,15 @@ namespace NReco.Data {
 				IsReadOnly = isReadOnly;
 				IsIdentity = isIdentity;
 				IsKey = isKey;
+
+				DefaultValue = null;
+				if (ValueType._IsValueType())
+					DefaultValue = Activator.CreateInstance(ValueType);
+
+				ConvertToType = ValueType;
+				if (Nullable.GetUnderlyingType(ValueType) != null)
+					ConvertToType = Nullable.GetUnderlyingType(ValueType);
+				IsEnum = ConvertToType._IsEnum();
 
 				// compose get
 				if (canRead) {
@@ -210,14 +239,14 @@ namespace NReco.Data {
 			internal bool SetValue(object obj, object val) {
 				if (SetVal==null)
 					return false;
-				var valType = ValueType;
-				if (Nullable.GetUnderlyingType(valType) != null)
-					valType = Nullable.GetUnderlyingType(valType);
-				if (valType._IsEnum()) {
-					val = Enum.Parse(valType, val.ToString(), true); 
+				if (val!=null) {
+					if (IsEnum) {
+						val = Enum.Parse(ConvertToType, val.ToString(), true); 
+					} else {
+						val = Convert.ChangeType(val, ConvertToType );
+					}
 				}
-
-				SetVal(obj, Convert.ChangeType(val, valType ) );
+				SetVal(obj, val);
 				return true;			
 			}
 

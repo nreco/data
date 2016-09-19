@@ -240,9 +240,7 @@ namespace NReco.Data {
 					return (T)((object)ReadDictionary(rdr));
 				}
 				// handle as poco model
-				var res = Activator.CreateInstance<T>();
-				(DtoMapper??DataMapper.Instance).MapTo(rdr, res);
-				return (T)res;
+				return (DtoMapper??DataMapper.Instance).MapTo<T>(rdr);
 			}
 		}
 		

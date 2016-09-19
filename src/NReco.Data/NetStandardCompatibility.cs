@@ -44,6 +44,10 @@ namespace NReco.Data {
 		internal static IEnumerable<Attribute> GetCustomAttributes(this Type t, bool inherit) {
 			return t.GetTypeInfo().GetCustomAttributes(inherit);
 		}
+
+		internal static ConstructorInfo GetConstructor(this Type t, Type[] types) {
+			return t.GetTypeInfo().GetConstructor(types);
+		}
 	}
 #else
 	internal static class Net40Compatibility {
