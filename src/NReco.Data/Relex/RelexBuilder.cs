@@ -106,6 +106,8 @@ namespace NReco.Data.Relex {
 					return BuildQueryString((Query)value, true);
 				if (value is QRawSql)
 					return BuildValue(((QRawSql)value).SqlText) + ":sql";
+				if ( (value is QField) && !RelexParser.IsName( ((QField)value).ToString() ) )
+					return "\""+base.BuildValue(value)+"\":field";
 				return base.BuildValue(value);
 			}
 

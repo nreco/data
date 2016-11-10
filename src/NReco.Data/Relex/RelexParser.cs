@@ -27,6 +27,12 @@ namespace NReco.Data.Relex
 	/// </summary>
 	public class RelexParser
 	{
+
+		/// <summary>
+		/// Allows raw sql constants like "select 1":sql. True by default.
+		/// </summary>
+		public bool AllowRawSql { get; set; } = true;
+
 		static readonly string[] nameGroups = new string[] { "and", "or"};
 		static readonly string[] delimiterGroups = new string[] { "&&", "||"};
 		static readonly QGroupType[] enumGroups = new QGroupType[] { QGroupType.And, QGroupType.Or };
@@ -87,6 +93,15 @@ namespace NReco.Data.Relex
 		public RelexParser() {
 		}
 		
+		internal static bool IsName(string s) {
+			for (int i=0; i<s.Length; i++) {
+				var ch = s[i];
+				if (!Char.IsLetterOrDigit(ch) && Array.IndexOf(specialNameChars,ch)<0)
+					return false;
+			}
+			return true;
+		}
+
 		protected LexemType GetLexemType(string s, int startIdx, out int endIdx) {
 			LexemType lexemType = LexemType.Unknown;
 			endIdx = startIdx;
@@ -242,11 +257,17 @@ namespace NReco.Data.Relex
 		protected virtual IQueryValue ParseTypedConstant(string typeCodeString, string constant) {
 			typeCodeString = typeCodeString.ToLower();
 			// sql type
-			if (typeCodeString == "sql")
+			if (typeCodeString == "sql") {
+				if (!AllowRawSql)
+					throw new RelexParseException("Raw sql constants are not allowed");
 				return new QRawSql(constant);
+			}
 			// var type
 			if (typeCodeString == "var")
 				return new QVar(constant);
+			// var type
+			if (typeCodeString == "field")
+				return new QField(constant);
 
 			// simple type
 			int typeNameIdx = Array.IndexOf(typeNames, typeCodeString);
