@@ -39,6 +39,8 @@ namespace NReco.Data {
 
 		public string ParamNameFormat { get; set; } = "@p{0}";
 
+		public string IdentifierFormat { get; set; }
+
 		/// <summary>
 		/// Gets or sets SQL command for retrieving ID for last inserted row.
 		/// </summary>
@@ -78,7 +80,15 @@ namespace NReco.Data {
 		}
 
 		public virtual ISqlExpressionBuilder CreateSqlBuilder(IDbCommand dbCommand, Func<Query,string> buildSubquery) {
-			return new DbSqlExpressionBuilder(dbCommand, this, buildSubquery);
+			var sqlBuilder = new DbSqlExpressionBuilder(dbCommand, this) {
+				BuildSubquery = buildSubquery,
+				FormatIdentifier = ApplyIdentifierFormat
+			};
+			return sqlBuilder;
+		}
+
+		protected virtual string ApplyIdentifierFormat(string name) {
+			return IdentifierFormat!=null ? String.Format(IdentifierFormat, name) : name;
 		}
 
 		public virtual object GetInsertId(IDbConnection connection) {

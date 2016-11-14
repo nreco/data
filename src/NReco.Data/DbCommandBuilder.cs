@@ -169,11 +169,12 @@ namespace NReco.Data
 
 			// prepare WHERE part
 			var whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
-			
+			var tblName = dbSqlBuilder.BuildTableName( query.Table.Name );
+
 			var deleteTpl = new StringTemplate(DeleteTemplate);
 			SetCommandText(cmd, deleteTpl.FormatTemplate( (varName) => {
 				switch (varName) {
-					case "table": return new StringTemplate.TokenResult(query.Table);
+					case "table": return new StringTemplate.TokenResult(tblName);
 					case "where": return new StringTemplate.TokenResult(whereExpression);
 				}
 				return StringTemplate.TokenResult.NotDefined;
@@ -206,11 +207,12 @@ namespace NReco.Data
 
 			// prepare WHERE part
 			string whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
-			
+			var tblName = dbSqlBuilder.BuildTableName( query.Table.Name );
+
 			var updateTpl = new StringTemplate(UpdateTemplate);
 			SetCommandText(cmd, updateTpl.FormatTemplate( (varName) => {
 				switch (varName) {
-					case "table": return new StringTemplate.TokenResult(query.Table);
+					case "table": return new StringTemplate.TokenResult(tblName);
 					case "set": return new StringTemplate.TokenResult(setExpression.ToString());
 					case "where": return new StringTemplate.TokenResult(whereExpression);
 				}
@@ -236,19 +238,23 @@ namespace NReco.Data
 			foreach (var setField in data) {
 				if (columns.Length>0)
 					columns.Append(',');
-				columns.Append(setField.Key);
+				columns.Append( dbSqlBuilder.BuildValue( (QField)setField.Key) );
 
 				if (values.Length>0)
 					values.Append(',');
 				values.Append(dbSqlBuilder.BuildValue(setField.Value));
 			}
 
+			var tblName = dbSqlBuilder.BuildTableName( tableName );
+			var colStr = columns.ToString();
+			var valStr = values.ToString();
+
 			var insertTpl = new StringTemplate(InsertTemplate);
 			SetCommandText(cmd, insertTpl.FormatTemplate( (varName) => {
 				switch (varName) {
-					case "table": return new StringTemplate.TokenResult(tableName);
-					case "columns": return new StringTemplate.TokenResult(columns.ToString());
-					case "values": return new StringTemplate.TokenResult(values);
+					case "table": return new StringTemplate.TokenResult(tblName);
+					case "columns": return new StringTemplate.TokenResult(colStr);
+					case "values": return new StringTemplate.TokenResult(valStr);
 				}
 				return StringTemplate.TokenResult.NotDefined;
 			}) );

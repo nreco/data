@@ -68,11 +68,12 @@ namespace NReco.Data {
 			string columns = BuildSelectColumns(query, sqlBuilder);
 			string orderBy = BuildOrderBy(query, sqlBuilder);
 			string whereExpression = BuildWhere(query, sqlBuilder);
-			
+			var tblName = sqlBuilder.BuildTableName(query.Table);
+
 			var selectTpl = new StringTemplate(SelectTemplate);
 			return selectTpl.FormatTemplate( (varName) => {
 				switch (varName) {
-					case "table": return new StringTemplate.TokenResult( GetSelectTableName(query.Table) );
+					case "table": return new StringTemplate.TokenResult( tblName );
 					case "where": return new StringTemplate.TokenResult( whereExpression );
 					case "orderby": return isCount ? StringTemplate.TokenResult.NotApplicable : new StringTemplate.TokenResult( orderBy );
 					case "columns": return new StringTemplate.TokenResult( columns );
@@ -135,23 +136,17 @@ namespace NReco.Data {
 					f = new QField(f.Name, FieldMapping[f.Name]);	
 
 				var fld = sqlBuilder.BuildValue((IQueryValue)f);
-				if (fld != f.Name) { // use "as" only for expression-fields
+				if (fld!=f.Name && f.Expression!=null) { // use "as" only for expression-fields
 					// special handling for 'count(*)' mapping
-					if (fld.ToLower()=="count(*)")
+					if (f.Expression.ToLower()=="count(*)")
 						fld = ApplyFieldMapping("count(*)");
-					fld = String.IsNullOrEmpty(f.Name) ? fld : String.Format("({0}) as {1}", fld, f.Name);
+					fld = String.IsNullOrEmpty(f.Name) ? fld : String.Format("({0}) as {1}", fld, sqlBuilder.BuildValue((QField)f.Name) );
 				}
 				if (columns.Length>0)
 					columns.Append(',');
 				columns.Append(fld);
 			}
 			return columns.ToString();
-		}
-
-		string GetSelectTableName(QTable table) {
-			if (!String.IsNullOrEmpty(table.Alias))
-				return table.Name + " " + table.Alias;
-			return table.Name;
 		}
 
 		bool IsCountQuery(Query q) {

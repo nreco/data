@@ -29,6 +29,13 @@ namespace NReco.Data
 		{
 		}
 		
+		public virtual string BuildTableName(QTable tbl) {
+			var tblName = BuildIdentifier( tbl.Name );
+			if (!String.IsNullOrEmpty(tbl.Alias))
+				tblName += " " + BuildIdentifier(tbl.Alias);
+			return tblName;
+		}
+
 		public virtual string BuildExpression(QNode node) {
 			if (node==null) return null;
 
@@ -167,11 +174,15 @@ namespace NReco.Data
 		protected virtual string BuildValue(QField fieldValue) {
 			if (!String.IsNullOrEmpty(fieldValue.Expression))
 				return fieldValue.Expression;
-			return String.IsNullOrEmpty(fieldValue.Prefix) ? fieldValue.Name : fieldValue.Prefix + "." + fieldValue.Name;
+			var name = BuildIdentifier(fieldValue.Name);
+			if (!String.IsNullOrEmpty(fieldValue.Prefix))
+				name = BuildIdentifier(fieldValue.Prefix)+"."+name;
+			return name;
 		}
-
 		
-		
+		protected virtual string BuildIdentifier(string name) {
+			return name;
+		}			
 		
 	}
 }

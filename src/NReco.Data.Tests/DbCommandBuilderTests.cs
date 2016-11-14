@@ -108,7 +108,7 @@ namespace NReco.Data.Tests {
 
 			// SELECT TEST with prefixes and expressions
 			IDbCommand cmd = cmdGenerator.GetSelectCommand( q );	
-			string masterSQL = "SELECT name,(t.age) as age,(t.age*12) as age_months FROM test t WHERE (((name LIKE @p0) Or (NOT(age>=@p1))) And ((weight=@p2) And (type IN (@p3,@p4)))) Or ((name<>@p5) And (type IS NOT NULL))";
+			string masterSQL = "SELECT name,t.age,(t.age*12) as age_months FROM test t WHERE (((name LIKE @p0) Or (NOT(age>=@p1))) And ((weight=@p2) And (type IN (@p3,@p4)))) Or ((name<>@p5) And (type IS NOT NULL))";
 			
 			Assert.Equal( masterSQL, cmd.CommandText.Trim() );
 
@@ -157,6 +157,21 @@ namespace NReco.Data.Tests {
 			
 			Assert.Equal( cmd.CommandText, masterSQL);
 			Assert.Equal( cmd.Parameters.Count, 1);
+
+			// ------- escape identifiers asserts --------
+			dbFactory.IdentifierFormat = "[{0}]";
+			Assert.Equal( 
+				"SELECT [name],[t].[age],(t.age*12) as [age_months] FROM [test] [t] WHERE ((([name] LIKE @p0) Or (NOT([age]>=@p1))) And (([weight]=@p2) And ([type] IN (@p3,@p4)))) Or (([name]<>@p5) And ([type] IS NOT NULL))",	
+				cmdGenerator.GetSelectCommand( q ).CommandText.Trim() );
+			Assert.Equal(
+				"INSERT INTO [test] ([name],[age],[weight],[type]) VALUES (@p0,@p1,@p2,@p3)",
+				cmdGenerator.GetInsertCommand( "test", testData ).CommandText );
+			Assert.Equal(
+				"UPDATE [test] SET [name]=@p0,[age]=@p1,[weight]=@p2,[type]=@p3 WHERE [name]=@p4",
+				cmdGenerator.GetUpdateCommand( new Query("test", (QField)"name"==(QConst)"test"), testData ).CommandText );
+			Assert.Equal(
+				"DELETE FROM [test] WHERE [id]=@p0",
+				cmdGenerator.GetDeleteCommand( new Query("test", (QField)"id"==(QConst)5 ) ).CommandText );	
 		}
 
 		[Fact]

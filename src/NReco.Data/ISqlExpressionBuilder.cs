@@ -17,17 +17,22 @@ using System;
 namespace NReco.Data
 {
 	/// <summary>
-	/// Represents abstract SQL builder interface.
+	/// Represents SQL builder interface.
 	/// </summary>
 	public interface ISqlExpressionBuilder
 	{
 		/// <summary>
-		/// Build string representation of specified IQueryValue
+		/// Builds SQL-compatible string by specified <see cref="QTable"/>. 
+		/// </summary>
+		string BuildTableName(QTable tbl);
+
+		/// <summary>
+		/// Builds SQL-compatible string by specified <see cref="IQueryValue"/>. 
 		/// </summary>
 		string BuildValue(IQueryValue v);
 
 		/// <summary>
-		/// Build string representation of specified QueryNode (condition)
+		/// Builds SQL-compatible string by specified <see cref="QNode"/>.
 		/// </summary>
 		string BuildExpression(QNode node);
 	}

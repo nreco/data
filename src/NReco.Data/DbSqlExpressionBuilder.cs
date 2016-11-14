@@ -32,12 +32,13 @@ namespace NReco.Data
 		protected IDbCommand Command { get; private set; }
 		protected IDbFactory DbFactory { get; private set; }
 
-		protected Func<Query,string> BuildSubquery { get; private set; }
+		public Func<Query,string> BuildSubquery { get; set; }
 
-		public DbSqlExpressionBuilder(IDbCommand cmd, IDbFactory dbFactory, Func<Query,string> buildSubquery) {
+		public Func<string,string> FormatIdentifier { get; set; }
+
+		public DbSqlExpressionBuilder(IDbCommand cmd, IDbFactory dbFactory) {
 			Command = cmd;
 			DbFactory = dbFactory;
-			BuildSubquery = buildSubquery;
 		}
 		
 		protected override string BuildConditionLValue(QConditionNode node) {
@@ -53,7 +54,7 @@ namespace NReco.Data
 
 		public override string BuildValue(IQueryValue v) {
 			if (v is Query) {
-				// subqueries handling is a bit weird. TBD: find better solution for that.
+				// refactoring is needed for subqueries handling. TBD: find better solution without 'buildSubquery' delegate.
 				if (BuildSubquery==null)
 					throw new NotImplementedException("Subqueries are not supported in this context");
 				return BuildSubquery( (Query)v );
@@ -80,6 +81,11 @@ namespace NReco.Data
 			return DbFactory.AddCommandParameter(Command,str).Placeholder;
 		}
 		
-		
+		protected override string BuildIdentifier(string name) {
+			return FormatIdentifier!=null ? FormatIdentifier(name) : name;
+		}
+
+
+
 	}
 }
