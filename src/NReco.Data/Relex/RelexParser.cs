@@ -93,15 +93,6 @@ namespace NReco.Data.Relex
 		public RelexParser() {
 		}
 		
-		internal static bool IsName(string s) {
-			for (int i=0; i<s.Length; i++) {
-				var ch = s[i];
-				if (!Char.IsLetterOrDigit(ch) && Array.IndexOf(specialNameChars,ch)<0)
-					return false;
-			}
-			return true;
-		}
-
 		protected LexemType GetLexemType(string s, int startIdx, out int endIdx) {
 			LexemType lexemType = LexemType.Unknown;
 			endIdx = startIdx;
@@ -134,8 +125,6 @@ namespace NReco.Data.Relex
 					else {
 						if (lexemType==LexemType.QuotedConstant) {
 							// check for "" combination
-							
-							
 							if ( ( (endIdx+1)<s.Length && s[endIdx+1]!=charQuote) ) {
 								endIdx++;
 								return lexemType;
@@ -333,12 +322,16 @@ namespace NReco.Data.Relex
 								endIdx = typeEndIdx;
 								typeCodeString += "[]";
 							}
-						
-						return ParseTypedConstant(typeCodeString, constant);
+						if (typeCodeString!="table") {
+							return ParseTypedConstant(typeCodeString, constant);
+						} else {
+							lexem = constant;
+							lexemType = LexemType.Name;
+						}
 					}
+				} else {
+					return (QConst)constant;
 				}
-				
-				return (QConst)constant;
 			}
 			
 			if (lexemType==LexemType.Name) {

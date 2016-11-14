@@ -53,7 +53,8 @@ namespace NReco.Data.Tests
 			"users( 1=1 )[name;\"name desc\"]",
 			"users( 1=1 )[name;name desc,id asc,time]",
 			"users( \"id\":field = 5 )[*]",
-			"users( \"[user id]\":sql = 1 )[name, \"[last name]\"]"
+			"users( \"[user id]\":sql = 1 )[name, \"[last name]\"]",
+			"\"company users.u\":table[\"u.User ID\"]"
 		};
 
 		string[] relExCommandTexts = new string[] {
@@ -79,6 +80,7 @@ namespace NReco.Data.Tests
 			@"SELECT name FROM users WHERE @p0=@p1 ORDER BY name desc,id asc,time asc",
 			@"SELECT * FROM users WHERE id=@p0",
 			@"SELECT name,[last name] FROM users WHERE [user id]=@p0",
+			@"SELECT u.[User ID] FROM [company users] u",
 	};
 		
 		[Fact]
@@ -86,7 +88,7 @@ namespace NReco.Data.Tests
 			var relExParser = new RelexParser();
 			
 			// generate SQL by query
-			var dbFactory = new DbFactory( SqlClientFactory.Instance );
+			var dbFactory = new TestRelExDbFactory();
 			var cmdGenerator = new DbCommandBuilder(dbFactory);
 
 			for (int i=0; i<oldRelExSamples.Length; i++) {
@@ -168,7 +170,28 @@ namespace NReco.Data.Tests
 			return null;
 		}
 
+		Query[] querySamples = new [] {
+			new Query("users", (QField)"id"==(QConst)5 ).Select("id","name"),
+			new Query("users", 
+				new QConditionNode( (QField)"company_id", Conditions.In,
+					new Query("companies.c").Select("c.id") )	
+			),
+			new Query("Purchase Orders", (QField)"PO Number" == (QConst) "1111" )
+		};
+		string[] queryToRelexResults = new [] {
+			"users(id=\"5\":Int32)[id,name]",
+			"users(company_id in companies.c[c.id])[*]",
+			"\"Purchase Orders\":table(\"PO Number\":field=\"1111\")[*]"
+		};
 		
+		[Fact]
+		public void test_RelexBuilder() {
+			var relexBuilder = new RelexBuilder();
+			for (int i=0; i<querySamples.Length; i++) {
+				Assert.Equal( queryToRelexResults[i], relexBuilder.BuildRelex(querySamples[i]) );
+			}
+		}
+
 		[Fact]
 		public void test_GetLexem() {
 			TestRelExQueryParser relExParser = new TestRelExQueryParser();
@@ -208,6 +231,28 @@ namespace NReco.Data.Tests
 			
 		}
 		
+		public class TestRelExDbFactory : DbFactory {
+			
+			public TestRelExDbFactory() : base(SqlClientFactory.Instance) {
+				IdentifierFormat = "[{0}]";
+			}
+
+			protected override string ApplyIdentifierFormat(string name) {
+				if (IsSimpleIdentifier(name) || (name.StartsWith("[") && name.EndsWith("]") ))
+					return name;
+				return base.ApplyIdentifierFormat(name);
+			}
+
+			bool IsSimpleIdentifier(string s) {
+				for (int i=0; i<s.Length; i++) {
+					var ch = s[i];
+					if (!Char.IsLetterOrDigit(ch) && ch!='-' && ch!='_')
+						return false;
+				}
+				return true;			
+			}
+		}
+
 		
 		public class TestRelExQueryParser : RelexParser {
 			

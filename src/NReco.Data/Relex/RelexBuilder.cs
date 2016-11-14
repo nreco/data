@@ -48,9 +48,7 @@ namespace NReco.Data.Relex {
 				if (!String.IsNullOrEmpty( node.Name ) ) {
 					return String.Format("(<{0}> {1})", node.Name, grp);
 				} else return grp;
-				
 			}
-
 
 			public string BuildQueryString(Query q, bool isNested) {
 				string rootExpression = BuildExpression(q.Condition);
@@ -64,7 +62,10 @@ namespace NReco.Data.Relex {
 				}
 				string limitExpression = isNested || (q.RecordOffset==0 && q.RecordCount==Int32.MaxValue) ? 
 					String.Empty : String.Format("{{{0},{1}}}", q.RecordOffset, q.RecordCount);
-				return String.Format("{0}{1}[{2}]{3}", q.Table, rootExpression,
+				var tblName = q.Table.ToString();
+				if (!DataHelper.IsSimpleIdentifier(q.Table.Name) || !DataHelper.IsSimpleIdentifier(q.Table.Alias))
+					tblName = BuildValue(tblName)+":table";
+				return String.Format("{0}{1}[{2}]{3}", tblName, rootExpression,
 					fieldExpression, limitExpression);
 			}
 
@@ -106,8 +107,8 @@ namespace NReco.Data.Relex {
 					return BuildQueryString((Query)value, true);
 				if (value is QRawSql)
 					return BuildValue(((QRawSql)value).SqlText) + ":sql";
-				if ( (value is QField) && !RelexParser.IsName( ((QField)value).ToString() ) )
-					return "\""+base.BuildValue(value)+"\":field";
+				if ( (value is QField) && !DataHelper.IsSimpleIdentifier( ((QField)value).Name ) )
+					return "\""+base.BuildValue(value).Replace("\"", "\"\"")+"\":field";
 				return base.BuildValue(value);
 			}
 
@@ -137,7 +138,7 @@ namespace NReco.Data.Relex {
 			
 			protected override string BuildValue(string str) {
 				return "\""+str.Replace("\"", "\"\"")+"\"";
-			}			
+			}
 
 		}		
 		

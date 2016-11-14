@@ -188,6 +188,15 @@ namespace NReco.Data {
 			}
 		}
 
+		internal static bool IsSimpleIdentifier(string s) {
+			if (s!=null)
+				for (int i=0; i<s.Length; i++) {
+					var ch = s[i];
+					if (!Char.IsLetterOrDigit(ch) && ch!='-' && ch!='_')
+						return false;
+				}
+			return true;			
+		}
 
 	}
 }
