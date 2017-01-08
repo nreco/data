@@ -140,7 +140,7 @@ namespace NReco.Data {
 					// special handling for 'count(*)' mapping
 					if (f.Expression.ToLower()=="count(*)")
 						fld = ApplyFieldMapping("count(*)");
-					fld = String.IsNullOrEmpty(f.Name) ? fld : String.Format("({0}) as {1}", fld, sqlBuilder.BuildValue((QField)f.Name) );
+					fld = String.IsNullOrEmpty(f.Name) ? fld : String.Format("{0} as {1}", fld, sqlBuilder.BuildValue((QField)f.Name) );
 				}
 				if (columns.Length>0)
 					columns.Append(',');
