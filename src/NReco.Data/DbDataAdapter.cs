@@ -409,7 +409,11 @@ namespace NReco.Data {
 			SetupCmd(cmd);
 			using (cmd) {
 				DataHelper.EnsureConnectionOpen(Connection, () => {
-					affectedRecords = cmd.ExecuteNonQuery();
+					try {
+						affectedRecords = cmd.ExecuteNonQuery();
+					} catch (Exception ex) {
+						throw new ExecuteDbCommandException(cmd, ex);
+					}
 				});
 			}
 			return affectedRecords;
@@ -425,6 +429,8 @@ namespace NReco.Data {
 				}
 				try {
 					affected = await cmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);	
+				} catch (Exception ex) {
+					throw new ExecuteDbCommandException(cmd, ex);
 				} finally {
 					if (isClosedConn)
 						cmd.Connection.Close();

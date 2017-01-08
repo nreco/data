@@ -72,16 +72,20 @@ namespace NReco.Data {
 
 		internal static void ExecuteReader(IDbCommand cmd, CommandBehavior cmdBehaviour, int recordOffset, int recordCount, Action<IDataReader> recordHandler) {
 			EnsureConnectionOpen(cmd.Connection, () => {
-				using (var rdr = cmd.ExecuteReader(cmdBehaviour)) {
-					int index = 0;
-					int processed = 0;
-					while (rdr.Read() && processed < recordCount) {
-						if (index>=recordOffset) {
-							processed++;
-							recordHandler(rdr);
+				try {
+					using (var rdr = cmd.ExecuteReader(cmdBehaviour)) {
+						int index = 0;
+						int processed = 0;
+						while (rdr.Read() && processed < recordCount) {
+							if (index>=recordOffset) {
+								processed++;
+								recordHandler(rdr);
+							}
+							index++;
 						}
-						index++;
 					}
+				} catch (Exception ex) {
+					throw new ExecuteDbCommandException(cmd, ex);
 				}
 			});
 		}
@@ -112,7 +116,8 @@ namespace NReco.Data {
 					}
 					index++;
 				}
-
+			} catch (Exception ex) {
+				throw new ExecuteDbCommandException(cmd, ex);
 			} finally {
 				if (rdr!=null)
 					rdr.Dispose();
