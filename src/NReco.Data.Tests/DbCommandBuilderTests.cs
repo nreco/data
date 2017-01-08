@@ -108,7 +108,7 @@ namespace NReco.Data.Tests {
 
 			// SELECT TEST with prefixes and expressions
 			IDbCommand cmd = cmdGenerator.GetSelectCommand( q );	
-			string masterSQL = "SELECT name,t.age,(t.age*12) as age_months FROM test t WHERE (((name LIKE @p0) Or (NOT(age>=@p1))) And ((weight=@p2) And (type IN (@p3,@p4)))) Or ((name<>@p5) And (type IS NOT NULL))";
+			string masterSQL = "SELECT name,t.age,t.age*12 as age_months FROM test t WHERE (((name LIKE @p0) Or (NOT(age>=@p1))) And ((weight=@p2) And (type IN (@p3,@p4)))) Or ((name<>@p5) And (type IS NOT NULL))";
 			
 			Assert.Equal( masterSQL, cmd.CommandText.Trim() );
 
@@ -161,7 +161,7 @@ namespace NReco.Data.Tests {
 			// ------- escape identifiers asserts --------
 			dbFactory.IdentifierFormat = "[{0}]";
 			Assert.Equal( 
-				"SELECT [name],[t].[age],(t.age*12) as [age_months] FROM [test] [t] WHERE ((([name] LIKE @p0) Or (NOT([age]>=@p1))) And (([weight]=@p2) And ([type] IN (@p3,@p4)))) Or (([name]<>@p5) And ([type] IS NOT NULL))",	
+				"SELECT [name],[t].[age],t.age*12 as [age_months] FROM [test] [t] WHERE ((([name] LIKE @p0) Or (NOT([age]>=@p1))) And (([weight]=@p2) And ([type] IN (@p3,@p4)))) Or (([name]<>@p5) And ([type] IS NOT NULL))",	
 				cmdGenerator.GetSelectCommand( q ).CommandText.Trim() );
 			Assert.Equal(
 				"INSERT INTO [test] ([name],[age],[weight],[type]) VALUES (@p0,@p1,@p2,@p3)",
@@ -194,13 +194,13 @@ namespace NReco.Data.Tests {
 			
 			// simple count query test
 			Assert.Equal(
-				"SELECT (count(p.id)) as cnt FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
+				"SELECT count(p.id) as cnt FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
 				cmdGenerator.GetSelectCommand( new Query("persons_view").Select(QField.Count) ).CommandText.Trim()
 			);
 			
 			// field mapping in select columns
 			Assert.Equal(
-				"SELECT (p.id) as id,name,(CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END) as expired FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
+				"SELECT p.id as id,name,CASE WHEN DATEDIFF(dd, p.added_date, NOW() )>30 THEN 1 ELSE 0 END as expired FROM persons p LEFT JOIN countries c ON (c.id=p.country_id)",
 				cmdGenerator.GetSelectCommand( new Query("persons_view")
 					.Select("id", "name", "expired") ).CommandText.Trim()
 			);

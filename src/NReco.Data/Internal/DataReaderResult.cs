@@ -24,6 +24,7 @@ namespace NReco.Data {
 	
 	internal interface IDataReaderResult<T> {
 		T Result { get; }
+		void Init(IDataReader rdr);
 		void Read(IDataReader rdr);
 	}
 
@@ -36,6 +37,8 @@ namespace NReco.Data {
 			Convert = convert;
 			Result = default(T);
 		}
+
+		public void Init(IDataReader rdr) { }
 
 		public void Read(IDataReader rdr) {
 			Result = Convert(rdr);
@@ -52,6 +55,8 @@ namespace NReco.Data {
 			Result = new List<T>();
 		}
 
+		public void Init(IDataReader rdr) { }
+
 		public void Read(IDataReader rdr) {
 			Result.Add( Convert(rdr) );
 		}
@@ -64,10 +69,13 @@ namespace NReco.Data {
 			Result = null;
 		}
 
-		public void Read(IDataReader rdr) {
+		public void Init(IDataReader rdr) {
 			if (Result==null) {
 				Result = DataHelper.GetRecordSetByReader(rdr);
-			}
+			}			
+		}
+
+		public void Read(IDataReader rdr) {
 			var rowValues = new object[rdr.FieldCount];
 			rdr.GetValues(rowValues);
 			Result.Add(rowValues).AcceptChanges();

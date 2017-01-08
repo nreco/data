@@ -70,16 +70,21 @@ namespace NReco.Data {
 			return qNode;
 		}
 
-		internal static void ExecuteReader(IDbCommand cmd, CommandBehavior cmdBehaviour, int recordOffset, int recordCount, Action<IDataReader> recordHandler) {
+		internal static void ExecuteReader<T>(
+			IDbCommand cmd, CommandBehavior cmdBehaviour, 
+			int recordOffset, int recordCount, 
+			IDataReaderResult<T> result) {
+
 			EnsureConnectionOpen(cmd.Connection, () => {
 				try {
 					using (var rdr = cmd.ExecuteReader(cmdBehaviour)) {
 						int index = 0;
 						int processed = 0;
+						result.Init(rdr);
 						while (rdr.Read() && processed < recordCount) {
 							if (index>=recordOffset) {
 								processed++;
-								recordHandler(rdr);
+								result.Read(rdr);
 							}
 							index++;
 						}
@@ -109,6 +114,8 @@ namespace NReco.Data {
 
 				int index = 0;
 				int processed = 0;
+
+				result.Init(rdr);
 				while ( (await rdr.ReadAsync(cancel)) && processed < recordCount) {
 					if (index>=recordOffset) {
 						processed++;

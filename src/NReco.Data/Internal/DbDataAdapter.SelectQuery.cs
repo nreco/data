@@ -54,14 +54,11 @@ namespace NReco.Data {
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
 			public T Single<T>() {
-				T result = default(T);
+				var res = new SingleDataReaderResult<T>( Read<T> );
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
-						(rdr) => {
-							result = Read<T>(rdr);
-						} );
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, res);
 				}
-				return result;
+				return res.Result;
 			}
 
 			/// <summary>
@@ -90,14 +87,11 @@ namespace NReco.Data {
 			/// </summary>
 			/// <returns>dictionary with field values or null if query returns zero records.</returns>
 			public Dictionary<string,object> ToDictionary() {
-				Dictionary<string,object> result = null;
+				var res = new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary );
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, 
-						(rdr) => {
-							result = ReadDictionary(rdr);
-						} );
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, res);
 				}
-				return result;
+				return res.Result;
 			}
 
 			/// <summary>
@@ -150,14 +144,11 @@ namespace NReco.Data {
 			/// </summary>
 			/// <returns>list with query results</returns>
 			public List<T> ToList<T>() {
-				var result = new List<T>();
+				var res = new ListDataReaderResult<T>( Read<T> );
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
-						(rdr) => {
-							result.Add( Read<T>(rdr) );
-						} );
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount, res);
 				}
-				return result;
+				return res.Result;
 			}
 
 			/// <summary>
@@ -182,12 +173,11 @@ namespace NReco.Data {
 			/// Returns all query results as <see cref="RecordSet"/>.
 			/// </summary>
 			public RecordSet ToRecordSet() {
-				var result = new RecordSetDataReaderResult();
+				var res = new RecordSetDataReaderResult();
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
-						result.Read );
+					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount, res);
 				}
-				return result.Result;
+				return res.Result;
 			}
 
 			/// <summary>
@@ -222,7 +212,7 @@ namespace NReco.Data {
 			private T Read<T>(IDataReader rdr) {
 				var typeCode = Type.GetTypeCode(typeof(T));
 				// handle primitive single-value result
-				if (typeCode!=TypeCode.Object) {
+				if (typeCode!=TypeCode.Object || typeof(T)==typeof(object) ) {
 					if (rdr.FieldCount==1) {
 						return ChangeType<T>( rdr[0], typeCode);
 					} else if (rdr.FieldCount>1) {
