@@ -1,0 +1,55 @@
+@model IEnumerable<SqliteDemo.MVCApplication.Db.Models.Article>
+
+@{
+    ViewData["Title"] = "Articles";
+}
+<h2>@ViewData["Title"].</h2>
+<h3>@ViewData["Message"]</h3>
+
+<p>
+    <a asp-action="Add">Add New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+			<th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+	@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Content)
+            </td>
+            @*<snippet_1>*@
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+            @*</snippet_1>*@
+        </tr>
+	}
+    </tbody>
+</table>
+
+<script type="text/javascript">
+	jQuery(document).ready(function () {
+
+	});
+</script>

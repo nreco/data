@@ -1,0 +1,17 @@
+@model SqliteDemo.MVCApplication.Db.Models.Article
+@{
+	ViewBag.Title = "Add Article";
+}
+<form asp-action="add" asp-controller="Article">
+	<div class="form-group">
+		<label asp-for="Title" class="control-label">Title</label>
+		<input type="text" asp-for="Title" class="form-control" />
+	</div>
+	<div class="form-group">
+		<label asp-for="Content" class="control-label">Content</label>
+		<input type="text" asp-for="Content" class="form-control" />
+	</div>
+	<div class="form-group">
+		<input type="submit" value="Send" class="btn btn-default" />
+	</div>
+</form>
