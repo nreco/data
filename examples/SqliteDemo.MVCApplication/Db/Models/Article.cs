@@ -1,13 +1,11 @@
 using System.Collections.Generic;
-using System.IO;
-using Microsoft.EntityFrameworkCore;
-
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace SqliteDemo.MVCApplication.Db.Models {
 	public class Article {
-		public int Id {
+		public int? Id {
 			get; set;
 		}
 
@@ -15,8 +13,15 @@ namespace SqliteDemo.MVCApplication.Db.Models {
 		public string Title {
 			get; set;
 		}
+		[Required]
+		public int AuthorId {
+			get; set;
+		}
 		public string Content {
 			get; set;
 		}
+
+		[NotMapped]
+		public List<User> UsersList {get; set; } = new List<User>();
 	}
 }
