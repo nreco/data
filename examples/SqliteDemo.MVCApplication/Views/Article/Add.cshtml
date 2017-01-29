@@ -2,16 +2,62 @@
 @{
 	ViewBag.Title = "Add Article";
 }
-<form asp-action="add" asp-controller="Article">
-	<div class="form-group">
-		<label asp-for="Title" class="control-label">Title</label>
-		<input type="text" asp-for="Title" class="form-control" />
+
+
+
+
+
+
+<form class="form-horizontal" asp-action="add" asp-controller="Article">
+	<div class="form-horizontal">
+		<h4>Add Article</h4>
+		<hr />
+		<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+		<div class="form-group">
+			<label asp-for="Title" class="col-md-2 control-label"></label>
+			<div class="col-md-10">
+				<input asp-for="Title" class="form-control" />
+				<span asp-validation-for="Title" class="text-danger"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label asp-for="Content" class="col-md-2 control-label"></label>
+			<div class="col-md-10">
+				<input asp-for="Content" class="form-control" />
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label asp-for="AuthorId" class="col-md-2 control-label">Author</label>
+			<div class="col-md-10">
+				<select class="form-control" asp-for="AuthorId" asp-items="@(new SelectList(Model.UsersList,"Id","FirstName"))">
+				</select>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-md-offset-2 col-md-10">
+				<input type="submit" value="Add" class="btn btn-default" />
+			</div>
+		</div>
 	</div>
-	<div class="form-group">
-		<label asp-for="Content" class="control-label">Content</label>
-		<input type="text" asp-for="Content" class="form-control" />
-	</div>
-	<div class="form-group">
-		<input type="submit" value="Send" class="btn btn-default" />
-	</div>
+
 </form>
+
+@section scripts{
+	<environment names="Development">
+		<script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+		<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+	</environment>
+	<environment names="Staging,Production">
+		<script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.min.js"
+				asp-fallback-src="~/lib/jquery-validation/dist/jquery.validate.min.js"
+				asp-fallback-test="window.jQuery && window.jQuery.validator">
+		</script>
+		<script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.6/jquery.validate.unobtrusive.min.js"
+				asp-fallback-src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"
+				asp-fallback-test="window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive">
+		</script>
+	</environment>
+}

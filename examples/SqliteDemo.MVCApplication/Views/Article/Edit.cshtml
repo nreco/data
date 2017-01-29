@@ -2,26 +2,47 @@
 @{
 	ViewBag.Title = "Edit Article";
 }
-<form asp-action="edit" asp-controller="article" asp-route-id="@Model.Id">
-	<div class="validation" asp-validation-summary="ModelOnly"></div>
-	<div class="form-group">
-		<label asp-for="Title" class="control-label">Title</label>
-		<input type="text" asp-for="Title" class="form-control" />
-		<span asp-validation-for="Title"></span>
-		<input type="hidden" asp-for="Id" class="form-control" />
-	</div>
-	<div class="form-group">
-		<label asp-for="Content" class="control-label">Content</label>
-		<input type="text" asp-for="Content" class="form-control" />
+
+<form class="form-horizontal" asp-action="edit" asp-controller="article" asp-route-id="@Model.Id">
+
+	<div class="form-horizontal">
+		<h4>Edit Article</h4>
+		<hr />
+		<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+		<div class="form-group">
+			<label asp-for="Title" class="col-md-2 control-label"></label>
+			<div class="col-md-10">
+				<input asp-for="Title" class="form-control" />
+				<span asp-validation-for="Title" class="text-danger"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label asp-for="Content" class="col-md-2 control-label"></label>
+			<div class="col-md-10">
+				<input asp-for="Content" class="form-control" />
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label asp-for="AuthorId" class="col-md-2 control-label">Author</label>
+			<div class="col-md-10">
+				<select class="form-control" asp-for="AuthorId" asp-items="@(new SelectList(Model.UsersList,"Id","FirstName"))">
+				</select>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-md-offset-2 col-md-10">
+				<input type="submit" value="Submit" class="btn btn-default" />
+			</div>
+		</div>
 	</div>
 
-	<div class="form-group">
-		<input type="submit" value="Send" class="btn btn-default" />
-	</div>
 </form>
 
 <div>
-    <a asp-action="List">Back to List</a>
+    <a class="btn btn-default" asp-action="List">Back to List</a>
 </div>
 
 @section scripts{

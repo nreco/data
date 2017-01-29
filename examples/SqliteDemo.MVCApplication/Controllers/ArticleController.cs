@@ -21,19 +21,29 @@ namespace SqliteDemo.MVCApplication.Controllers
 		}
 
 		public IActionResult Add() {
-			return View();
+			return View(
+				new Article(){
+					UsersList = db.GetAllAuthors().ToList<User>()
+				}
+			);
 		}
 
 		[HttpPost]
 		public IActionResult Add(Article a) {
-			db.Add(a);
-			return RedirectToAction("List");
+			TryValidateModel(a);
+			if (ModelState.IsValid) {
+				db.Add(a);
+				return RedirectToAction("List");
+			}
+			return View(a);
 		}
 
 		public IActionResult Edit(int? id) {
 			if (id.HasValue) {
+				var article = db.FindById(id.Value);
+				article.UsersList = db.GetAllAuthors().ToList<User>();
 				return View(
-					db.FindById(id.Value)
+					article
 				);
 			}
 			return NotFound();

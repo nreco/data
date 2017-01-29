@@ -13,6 +13,7 @@ using SqliteDemo.MVCApplication.Db.Interfaces;
 using SqliteDemo.MVCApplication.Db.Context;
 
 using NReco.Data;
+using NReco.Data.Relex;
 
 namespace SqliteDemo.MVCApplication.Db.Repositories {
     public class ArticleRepository : IArticleRepository {
@@ -26,31 +27,50 @@ namespace SqliteDemo.MVCApplication.Db.Repositories {
 		}
 
 		public async void Add(Article a) {
-			dbContext.Articles.Add(a);
-			await dbContext.SaveChangesAsync();
+			//dbContext.Articles.Add(a);
+			//await dbContext.SaveChangesAsync();
+			await _DbNRecoAdapter.InsertAsync("Articles", a);
 		}
 
 		public async Task<int> Edit(Article a) {
-			dbContext.Articles.Update(a);
-			return await dbContext.SaveChangesAsync();
+			return await _DbNRecoAdapter.UpdateAsync( 
+				new Query(
+					"Articles", 
+					(QField)"Id" == (QConst)a.Id 
+				), 
+				a
+			);
 		}
 
 		public Article FindById(int id) {
-			var result = dbContext.Articles.Where(c => c.Id == id).FirstOrDefault();
+			var result = _DbNRecoAdapter.Select( 
+				new Query(
+					"Articles", 
+					(QField)"Id" == (QConst)id
+				)
+			).Single<Article>(); 
 			return result;
 		}
 
 		public IEnumerable<Article> GetArticles() {
-			//return dbContext.Articles.ToArray();
 			return _DbNRecoAdapter.Select( new Query("Articles") ).ToList<Article>(); 
 		}
 
 		public void Remove(int id) {
-			var a = new Article { Id = id };
-			dbContext.Entry(a).State = EntityState.Deleted;
-			//Article p = dbContext.Articles.Where(c => c.ArticleId == id).FirstOrDefault();
-			//dbContext.Articles.Remove(p);
-			dbContext.SaveChanges();
+			_DbNRecoAdapter.Delete(
+				new Query(
+					"Articles", 
+					(QField)"Id" == (QConst)id 
+				)
+			);
+		}
+
+		public IEnumerable<User> GetAllAuthors() {
+			var relexParser = new RelexParser();
+			var relexQuery = "Users[*;Id asc]";
+			var q = relexParser.Parse(relexQuery);
+
+			return _DbNRecoAdapter.Select( q ).ToList<User>();
 		}
 	}
 } 
