@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.IO;
 
@@ -42,26 +43,53 @@ namespace SqliteDemo.MVCApplication
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var dbConnectionString = String.Format("Data Source={0}", Path.Combine(ApplicationPath, dbConnectionFile));
 			// Add framework services.
 			services.AddDbContext<DbCoreContext>(options => options.UseSqlite(Path.Combine(ApplicationPath, dbConnectionFile)));
 			services.AddScoped<ArticleRepository>();
 
-            InjectNRecoDataService(services);
+            InjectNRecoDataService(services, dbConnectionString);
             // Add framework services.
             services.AddMvc();
         }
 
-        protected void InjectNRecoDataService(IServiceCollection services) {
+        protected void InjectNRecoDataService(IServiceCollection services, string dbConnectionString) {
             //
-            var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
+            /*var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
                 LastInsertIdSelectText = "SELECT last_insert_rowid()"
             };
             var dbConnection = dbFactory.CreateConnection();
             dbConnection.ConnectionString = String.Format("Data Source={0}", Path.Combine(ApplicationPath, dbConnectionFile));
-            var dbCmdBuilder = new DbCommandBuilder(dbFactory);
+            var dbCmdBuilder = new DbCommandBuilder(dbFactory);*/
 
-            var dbAdapter = new DbDataAdapter(dbConnection, dbCmdBuilder);
-            services.AddSingleton<DbDataAdapter>(dbAdapter);
+            services.AddSingleton<IDbFactory,DbFactory>( (servicePrv) => {
+				// db-provider specific configuration code:
+				return new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
+					LastInsertIdSelectText = "SELECT last_insert_rowid()"
+				};
+			});
+			services.AddSingleton<IDbCommandBuilder,DbCommandBuilder>( (servicePrv) => {
+				var dbCmdBuilder = new DbCommandBuilder(servicePrv.GetRequiredService<IDbFactory>() );
+				// initialize dataviews here:
+				//dbCmdBuilder.Views["some_view"] = new DbDataView(...);
+				return dbCmdBuilder;
+			} );
+
+			if (dbConnectionString!=null) {
+				// lets add IDbConnection to services; otherwise NReco.Data components will use IDbConnection instance defined outside
+				services.AddScoped<IDbConnection>( (servicePrv) => {
+					var dbFactory = servicePrv.GetRequiredService<IDbFactory>();
+					var conn = dbFactory.CreateConnection();
+					conn.ConnectionString = dbConnectionString;
+					return conn;
+				} );
+			}
+			services.AddScoped<DbDataAdapter>();
+
+
+           
+            //var dbAdapter = new DbDataAdapter(dbConnection, dbCmdBuilder);
+            //services.AddSingleton<DbDataAdapter>(dbAdapter);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
