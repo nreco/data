@@ -1,15 +1,15 @@
 ﻿{
-  "version": "1.0.0-alpha7",
+  "version": "1.0.0",
   "title": "NReco.Data",
-  "description": "Lightweight db-independent data access library: generates SQL commands by abstract queries (command builder), schema-less CRUD operations (data adapter), annotated POCO mapping, RecordSet (replacement for DataTable).",
+  "description": "High-performance, schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, annotated POCO mapping, app-level data views, RecordSet structure (replacement for DataTable).",
   "authors": [ "Vitalii Fedorchenko" ],
-  "copyright": "Copyright (c) 2016 Vitalii Fedorchenko",
+  "copyright": "Copyright (c) 2016-2017 Vitalii Fedorchenko",
   "packOptions": {
     "owners": [ "Vitalii Fedorchenko" ],
     "projectUrl": "http://www.nrecosite.com/dalc_net.aspx",
     "tags": [ "DAL", "ado.net", "data", "relex", "recordset",  "sql", "query", "generator", "batch", "database", "micro-orm", "data-mapper", "poco", "schema-less", "netstandard", "netcore", "net45" ],
     "licenseUrl": "https://raw.githubusercontent.com/nreco/data/master/LICENSE",
-    "iconUrl": "http://www.nrecosite.com/img/nreco-logo-200.png"
+    "iconUrl": "https://www.nrecosite.com/img/nreco-logo-200.png"
   },
   "buildOptions": {
 
