@@ -69,7 +69,7 @@ namespace SqliteDemo.MVCApplication
 			services.AddSingleton<IDbCommandBuilder,DbCommandBuilder>( (servicePrv) => {
 				var dbCmdBuilder = new DbCommandBuilder(servicePrv.GetRequiredService<IDbFactory>() );
 				// initialize dataviews here:
-				//dbCmdBuilder.Views["some_view"] = new DbDataView(...);
+				dbCmdBuilder.Views["articles_view"] = ConfigureArticlesView();//new DbDataView(...);
 				return dbCmdBuilder;
 			} );
 
@@ -81,6 +81,19 @@ namespace SqliteDemo.MVCApplication
 
 			services.AddScoped<DbDataAdapter>();
         }
+
+		protected DbDataView ConfigureArticlesView() {
+			return new DbDataView(
+				@"SELECT @columns FROM articles a
+					LEFT JOIN Users u ON (u.Id=a.AuthorId)
+				@where[ WHERE {0}] @orderby[ ORDER BY {0}]"
+			) {
+				FieldMapping = new Dictionary<string,string>() {
+					{"Id", "a.Id"},
+					{"*", "a.*, u.FirstName as AuthorFirstName, u.SecondName as AuthorLastName"}
+				}
+			};
+		}
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)

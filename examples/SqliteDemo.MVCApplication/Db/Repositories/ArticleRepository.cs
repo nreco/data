@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using SqliteDemo.MVCApplication.Db.Models;
+using SqliteDemo.MVCApplication.Db.Views;
 using SqliteDemo.MVCApplication.Db.Interfaces;
 using SqliteDemo.MVCApplication.Db.Context;
 
@@ -52,8 +53,8 @@ namespace SqliteDemo.MVCApplication.Db.Repositories {
 			return result;
 		}
 
-		public IEnumerable<Article> GetArticles() {
-			return _DbNRecoAdapter.Select( new Query("Articles") ).ToList<Article>(); 
+		public IEnumerable<ArticleView> GetArticles() {
+			return _DbNRecoAdapter.Select( new Query("articles_view") ).ToList<ArticleView>(); 
 		}
 
 		public void Remove(int id) {

@@ -1,4 +1,4 @@
-@model IEnumerable<SqliteDemo.MVCApplication.Db.Models.Article>
+@model IEnumerable<SqliteDemo.MVCApplication.Db.Views.ArticleView>
 
 @{
     ViewData["Title"] = "Articles";
@@ -19,6 +19,9 @@
                 @Html.DisplayNameFor(model => model.Title)
             </th>
             <th>
+                Author
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Content)
             </th>
             <th></th>
@@ -32,6 +35,10 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AuthorFirstName)
+                @Html.DisplayFor(modelItem => item.AuthorLastName)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Content)
