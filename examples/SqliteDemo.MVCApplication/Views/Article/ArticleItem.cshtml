@@ -1,0 +1,13 @@
+@model SqliteDemo.MVCApplication.Db.Models.Article
+
+@{
+    ViewData["Title"] = "Article";
+}
+<h2>@ViewData["Title"].</h2>
+<h3>@ViewData["Message"]</h3>
+
+@Model.Id
+
+<p>Use this area to provide article information.</p>
+
+@Model.Title
