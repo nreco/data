@@ -1,0 +1,22 @@
+version: 1.0.{build}
+os: Visual Studio 2015
+configuration: Release
+platform: Any CPU
+
+branches:
+  only:
+  - master
+
+skip_tags: true
+
+install:
+- cmd: |-
+    dotnet restore
+build_script:
+- cmd: |-
+    dotnet build src\NReco.Data --configuration Release
+    dotnet build src\NReco.Data.Tests --configuration Release
+	
+test_script:
+- cmd: |-
+    dotnet test src\NReco.Data.Tests --configuration Release

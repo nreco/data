@@ -1,6 +1,11 @@
 # NReco.Data
 Lightweight data access components for generating SQL commands, mapping results to strongly typed POCO models or dictionaries, schema-less CRUD-operations with RecordSet. 
 
+NuGet | Windows x64 | Ubuntu 14.04
+--- | --- | ---
+[![NuGet Release](https://img.shields.io/nuget/v/NReco.Data.svg)](https://www.nuget.org/packages/NReco.Data/) | [![AppVeyor](https://img.shields.io/appveyor/ci/nreco/data/master.svg)](https://ci.appveyor.com/project/nreco/data) | [![Travis CI](https://img.shields.io/travis/nreco/data/master.svg)](https://travis-ci.org/nreco/data) 
+
+
 * abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query) (no need to compose raw SQL)
 * DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
 * DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, select multiple recordsets)
