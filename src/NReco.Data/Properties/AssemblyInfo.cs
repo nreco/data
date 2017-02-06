@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NReco.Data")]
-[assembly: AssemblyDescription("Lightweight data access components for generating SQL commands by db-independent queries, CRUD operations.")]
+[assembly: AssemblyDescription("High-performance, schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, annotated POCO mapping, app-level data views, RecordSet structure (replacement for DataTable).")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("NReco.Data")]
-[assembly: AssemblyCopyright("Copyright © Vitalii Fedorchenko 2016")]
+[assembly: AssemblyCopyright("Copyright © Vitalii Fedorchenko 2016-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]
