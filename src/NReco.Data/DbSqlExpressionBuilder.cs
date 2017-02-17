@@ -64,7 +64,12 @@ namespace NReco.Data
 
 		protected override string BuildValue(QConst value) {
 			object constValue = value.Value;
-			// all constants are passed as parameters						
+
+			// do not use parameter for nulls (type param cannot be determined by null)
+			if (constValue==null && !(value is QVar))
+				return "NULL";
+
+			// all non-null constants are passed as parameters						
 			var cmdParam = DbFactory.AddCommandParameter(Command,constValue);
 			if (value is QVar) {
 				cmdParam.Parameter.SourceColumn = ((QVar)value).Name;

@@ -157,6 +157,9 @@ namespace NReco.Data
 
 		protected virtual string BuildValue(QConst value) {
 			object constValue = value.Value;
+			if (constValue==null)
+				return "NULL";
+
 			if (constValue is string)
 				return BuildValue( (string)constValue );
 									
