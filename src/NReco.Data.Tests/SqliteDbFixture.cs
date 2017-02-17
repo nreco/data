@@ -32,7 +32,8 @@ namespace NReco.Data.Tests
 					[title] TEXT,
 					[country] TEXT,
 					[size] INTEGER,
-					[registered] TEXT
+					[registered] TEXT,
+					[logo_image] BLOB
 				)");
 			Execute(@"INSERT INTO [companies] (title,country,size,registered) VALUES ('Microsoft', 'USA', 118000, '1975-04-04')");
 			Execute(@"INSERT INTO [companies] (title,country,size,registered) VALUES ('Atlassian', 'Australia', 1259, '2002')");

@@ -64,11 +64,6 @@ namespace NReco.Data
 
 		protected override string BuildValue(QConst value) {
 			object constValue = value.Value;
-				
-			// keep special processing for lists
-			if (constValue is IList)
-				return BuildValue( (IList)constValue );
-			
 			// all constants are passed as parameters						
 			var cmdParam = DbFactory.AddCommandParameter(Command,constValue);
 			if (value is QVar) {

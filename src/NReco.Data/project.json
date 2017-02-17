@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "NReco.Data",
   "description": "High-performance, schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, annotated POCO mapping, app-level data views, RecordSet structure (replacement for DataTable).",
   "authors": [ "Vitalii Fedorchenko" ],
