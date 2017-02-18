@@ -1,0 +1,8 @@
+language: csharp
+sudo: required
+dist: trusty
+dotnet: 1.0.0-preview2-003121
+solution: src/NReco.Data.sln
+script:
+- dotnet restore
+- dotnet test src/NReco.Data.Tests --configuration Release

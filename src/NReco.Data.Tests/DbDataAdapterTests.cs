@@ -61,6 +61,12 @@ namespace NReco.Data.Tests {
 			Assert.Equal(5, contactsWithHightRS.Columns.Count );
 			Assert.Equal("Viola Garrett", contactsWithHightRS[0]["name"] );
 
+			// check in
+			var contactsWithFourAndFiveScore = DbAdapter.Select(
+				new Query("contacts_view", new QConditionNode( (QField)"score", Conditions.In, new QConst(new[] {4,5}) ) ).OrderBy("name desc")
+			);
+			Assert.Equal(4, contactsWithFourAndFiveScore.ToRecordSet().Count);
+
 			// select to annotated object
 			var companies = DbAdapter.Select(new Query("companies").OrderBy("id")).ToList<CompanyModelAnnotated>();
 			Assert.Equal(2, companies.Count);
@@ -105,7 +111,8 @@ namespace NReco.Data.Tests {
 				Assert.Equal(1,
 					DbAdapter.Insert("companies", new Dictionary<string,object>() {
 						{"title", "Test Inc"},
-						{"country", "Norway"}
+						{"country", "Norway"},
+						{"logo_image", null}
 					}) );				
 				recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection); 
 			} );
@@ -222,6 +229,7 @@ namespace NReco.Data.Tests {
 			newCompany.Id = 5000; // should be ignored
 			newCompany.Name = "Test Super Corp";
 			newCompany.registered = false; // should be ignored
+			newCompany.Logo = new byte[] { 1,2,3 }; // lets assume this is sample binary data
 			DbAdapter.Insert(newCompany);
 			
 			Assert.True(newCompany.Id.HasValue);
@@ -277,6 +285,9 @@ namespace NReco.Data.Tests {
 			[Column("title")]
 			public string Name { get; set; }
 			
+			[Column("logo_image")]
+			public byte[] Logo { get; set; }
+
 			[NotMapped]
 			public bool registered { get; set; }
 		}		

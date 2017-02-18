@@ -54,10 +54,28 @@ namespace NReco.Data {
 			return q;
 		}
 
+		bool IsBinaryType(Type t) {
+			return t==typeof(byte[])
+			#if !NET_STANDARD
+				|| t==typeof(System.Data.SqlTypes.SqlBytes) || t==typeof(System.Data.SqlTypes.SqlBinary)
+			#endif
+			;
+		}
+
 		void FillCmdParams(IDbCommand cmd, RecordSet.Row row) {
 			foreach (DbParameter p in cmd.Parameters) {
-				if (p.SourceColumn!=null)
-					p.Value = row[p.SourceColumn] ?? DBNull.Value;
+				if (p.SourceColumn!=null) {
+					var rowVal = row[p.SourceColumn];
+					if (rowVal==null) {
+						p.Value = DBNull.Value;
+						var col = RS.Columns[p.SourceColumn];
+						if (IsBinaryType(col.DataType))
+							p.DbType = DbType.Binary;
+					} else {
+						p.Value = rowVal;
+					}
+					p.Value = rowVal ?? DBNull.Value;
+				}
 			}			
 		}
 

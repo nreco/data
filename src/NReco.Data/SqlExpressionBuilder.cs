@@ -129,9 +129,16 @@ namespace NReco.Data
 		}
 
 		protected virtual string BuildConditionRValue(QConditionNode node) {
+			if ( (node.Condition & Conditions.In)==Conditions.In && IsMultivalueConst( node.RValue ) ) {
+				var multiValue = ((QConst)node.RValue).Value as IList;
+				return BuildValue(multiValue);
+			}
 			return BuildValue( node.RValue);
 		}
 
+		bool IsMultivalueConst(IQueryValue val) {
+			return val is QConst && ((QConst)val).Value is IList;
+		}
 
 		public virtual string BuildValue(IQueryValue value) {
 			if (value==null) return null;
@@ -150,10 +157,9 @@ namespace NReco.Data
 
 		protected virtual string BuildValue(QConst value) {
 			object constValue = value.Value;
-				
-			// special processing for arrays
-			if (constValue is IList)
-				return BuildValue( (IList)constValue );
+			if (constValue==null)
+				return "NULL";
+
 			if (constValue is string)
 				return BuildValue( (string)constValue );
 									
@@ -161,10 +167,10 @@ namespace NReco.Data
 		}
 		
 		protected virtual string BuildValue(IList list) {
-			string[] paramNames = new string[list.Count];
+			string[] vals = new string[list.Count];
 			for (int i=0; i<list.Count; i++)
-				paramNames[i] = BuildValue( new QConst(list[i]) );
-			return String.Join(",", paramNames);
+				vals[i] = BuildValue( new QConst(list[i]) );
+			return String.Join(",", vals);
 		}
 		
 		protected virtual string BuildValue(string str) {
@@ -182,7 +188,7 @@ namespace NReco.Data
 		
 		protected virtual string BuildIdentifier(string name) {
 			return name;
-		}			
-		
+		}
+
 	}
 }
