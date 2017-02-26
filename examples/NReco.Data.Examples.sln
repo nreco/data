@@ -11,6 +11,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqliteDemo.WebApi", "Sqlite
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqliteDemo.MVCApplication", "SqliteDemo.MVCApplication\SqliteDemo.MVCApplication.xproj", "{C26E59A1-E085-45DF-8AD2-E7C2810AC1D8}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqlserverDemo.DbMetadata", "SqlserverDemo.DbMetadata\SqlserverDemo.DbMetadata.xproj", "{2B8EB4B6-4896-4970-B5EA-6D324824A541}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C26E59A1-E085-45DF-8AD2-E7C2810AC1D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C26E59A1-E085-45DF-8AD2-E7C2810AC1D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C26E59A1-E085-45DF-8AD2-E7C2810AC1D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B8EB4B6-4896-4970-B5EA-6D324824A541}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B8EB4B6-4896-4970-B5EA-6D324824A541}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B8EB4B6-4896-4970-B5EA-6D324824A541}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B8EB4B6-4896-4970-B5EA-6D324824A541}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
