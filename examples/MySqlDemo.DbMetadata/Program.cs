@@ -9,16 +9,16 @@ using MySql.Data.MySqlClient;
 
 using NReco.Data;
 
-using SqlserverDemo.DbMetadata.Models;
+using MySqlDemo.DbMetadata.Models;
 
-namespace SqlserverDemo.DbMetadata {
+namespace MySqlDemo.DbMetadata {
 	public class Program {
 
 		private static DbDataAdapter _dbAdapter;
 		protected static DbDataAdapter dbAdapter {
 			get {
 				if (_dbAdapter == null) {
-					var sqlDbPath = "Server=db4free.net;Database=nreco_sampledb;Uid=nreco;Pwd=HRt5UbVD";
+					var sqlDbPath = "Server=useastdb.ensembl.org;Port=3306;Database=ailuropoda_melanoleuca_otherfeatures_86_1;Uid=anonymous;";
 
 					var dbFactory = new DbFactory(MySqlClientFactory.Instance) {
 						LastInsertIdSelectText = "SELECT last_insert_rowid()"
@@ -35,33 +35,33 @@ namespace SqlserverDemo.DbMetadata {
 
 		public static void Main(string[] args) {
 
-			Console.WriteLine("Fetch all columns from table 'Customers'");
-			var customerTable = FetchTableMetaData("customers");
+			Console.WriteLine("Fetch all columns from table 'transcript' of database 'ailuropoda_melanoleuca_otherfeatures_86_1'");
+			var customerTable = FetchTableMetaData("transcript");
 			Console.Write("Table added: {0}", customerTable.create_time);
 			Console.WriteLine();
 			Console.WriteLine();
 			foreach (var col in customerTable.Columns) {
-				Console.Write("Column name: {0}; Data type: {1}; IsNullable: {2} |", col.column_name, col.data_type, col.is_nullable);
+				Console.Write("Column name: {0}; Data type: {1}; IsNullable: {2} |", col.ColumnName, col.DataType, col.IsNullable);
 				Console.WriteLine();
 			}
 			Console.ReadKey();
 		}
 
-		protected static SqlserverDemo.DbMetadata.Models.DataTable FetchTableMetaData(string tableName) {
+		protected static MySqlDemo.DbMetadata.Models.DataTable FetchTableMetaData(string tableName) {
 			var query = new Query(
 				new QTable("information_schema.tables", null),
 				(QField)"table_name" == (QConst)tableName).Select("table_name", "create_time"
 			);
 			var table = dbAdapter.Select(
 				query
-			).Single<SqlserverDemo.DbMetadata.Models.DataTable>();
+			).Single<MySqlDemo.DbMetadata.Models.DataTable>();
 
 			GetColumnsMetadata(table);
 
 			return table;
 		}
 
-		protected static void GetColumnsMetadata(SqlserverDemo.DbMetadata.Models.DataTable table) {
+		protected static void GetColumnsMetadata(MySqlDemo.DbMetadata.Models.DataTable table) {
 			var query = new Query(
 				new QTable("INFORMATION_SCHEMA.COLUMNS", null),
 				(QField)"TABLE_NAME" == (QConst)table.table_name).Select("column_name", "data_type", "is_nullable"

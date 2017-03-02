@@ -11,7 +11,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqliteDemo.WebApi", "Sqlite
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqliteDemo.MVCApplication", "SqliteDemo.MVCApplication\SqliteDemo.MVCApplication.xproj", "{C26E59A1-E085-45DF-8AD2-E7C2810AC1D8}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqlserverDemo.DbMetadata", "SqlserverDemo.DbMetadata\SqlserverDemo.DbMetadata.xproj", "{2B8EB4B6-4896-4970-B5EA-6D324824A541}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MySqlDemo.DbMetadata", "MySqlDemo.DbMetadata\MySqlDemo.DbMetadata.xproj", "{2B8EB4B6-4896-4970-B5EA-6D324824A541}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
