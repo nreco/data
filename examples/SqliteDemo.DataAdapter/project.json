@@ -17,7 +17,7 @@
       "dependencies": {
         "Microsoft.Data.SQLite": "1.0.0",
         "System.ComponentModel.Annotations": "4.1.0",
-        "NReco.Data": "1.0.0-alpha6"
+        "NReco.Data": "1.0.0"
       }
     }
   }

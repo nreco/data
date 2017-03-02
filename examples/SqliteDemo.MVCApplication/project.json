@@ -26,7 +26,7 @@
     "Microsoft.Extensions.Logging.Debug": "1.1.0",
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.0",
     "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
-    "NReco.Data": "1.0.0-alpha6",
+    "NReco.Data": "1.0.0",
     "Microsoft.EntityFrameworkCore.Relational": "1.1.0",
     "Microsoft.Data.Sqlite": "1.1.0"
   },

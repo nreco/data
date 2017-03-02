@@ -14,12 +14,12 @@ NuGet | Windows x64 | Ubuntu 14.04
  * supports annotated POCO models (like EF Core entity models)
  * schema-less data access API (dictionaries / RecordSet) 
  * async support for all methods
-* application-level data views (complex SQL queries) that accessed like simple read-only tables (DbDataView)
-* best for schema-less DB access, dynamic DB queries, user-defined filters; DAL can be used in addition to EF Core
+* application-level data views (for complex SQL queries) that accessed like simple read-only tables (DbDataView)
+* best for schema-less DB access, dynamic DB queries, user-defined filters; NReco.Data can be used in addition to EF Core
 * fills the gap between minimalistic .NET Core (corefx) System.Data and EF Core 
 * parser/builder for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
 * can be used with any existing ADO.NET data provider (MsSql, PostgreSql, Sqlite, MySql etc)
-* supports both full .NET Framework 4.x and .NET Core (netstandard1.5)
+* supports both full .NET Framework 4.5+ and .NET Core (netstandard1.5)
 
 Nuget package: [NReco.Data](https://www.nuget.org/packages/NReco.Data/)
 
@@ -85,11 +85,13 @@ Query q = relexParser.Parse(relex);
 ```
 
 ## More examples
-* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder/Program.cs) (includes code for batching inserts)
-* [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs) (CRUD operations with dictionaries, POCO, recordsets)
-* [DB WebApi](https://github.com/nreco/data/tree/master/examples/SqliteDemo.WebApi) (configures NReco.Data services, simple REST API for database tables)
+* [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder/Program.cs): illustrates SQL commands generation, command batching (inserts)
+* [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs): CRUD operations with dictionaries, POCO, RecordSet
+* [DB WebApi](https://github.com/nreco/data/tree/master/examples/SqliteDemo.WebApi): configures NReco.Data services in MVC Core app, simple REST API for database tables
+* [MVC Core CRUD](https://github.com/nreco/data/tree/master/examples/SqliteDemo.MVCApplication): full-functional CRUD (list, add/edit forms) that uses NReco.Data as data layer in combination with EF Core
+* [DB Metadata](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DbMetadata): extract database metadata (list of tables, columns) with information_schema queries
 
 ## License
-Copyright 2016 Vitaliy Fedorchenko
+Copyright 2016-2017 Vitaliy Fedorchenko and contributors
 
 Distributed under the MIT license
