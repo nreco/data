@@ -125,13 +125,16 @@ namespace NReco.Data {
 		}
 
 		internal T MapTo<T>(IDataRecord record) {
-			var type = typeof(T);
+			return (T)MapTo(record, typeof(T));
+		}
+
+		internal object MapTo(IDataRecord record, Type type) {
 			var schema = GetSchema(type);
 			if (schema.CreateModel==null)
 				throw new ArgumentException($"Type '{type.Name}' does not have a default constructor");	
 			var o = schema.CreateModel();
 			MapTo(record, o, type, schema);
-			return (T)o;
+			return o;
 		}
 
 		internal class PocoModelSchema {

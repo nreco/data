@@ -29,10 +29,12 @@ namespace NReco.Data {
 		/// </summary>
 		public abstract class SelectQuery {
 			readonly protected DbDataAdapter Adapter;
-			internal DataMapper DtoMapper;
+			DataMapper DtoMapper;
+			Func<IMapperContext,object> CustomMappingHandler = null;
 
 			internal SelectQuery(DbDataAdapter adapter) {
 				Adapter = adapter;
+				DtoMapper = DataMapper.Instance;
 			}
 
 			int DataReaderRecordOffset {
@@ -48,6 +50,14 @@ namespace NReco.Data {
 			protected abstract IDbCommand GetSelectCmd();
 
 			protected virtual string FirstFieldName { get { return null; } }
+
+			/// <summary>
+			/// Configures custom mapping handler for POCO models.
+			/// </summary>
+			public SelectQuery SetMapper(Func<IMapperContext,object> handler) {
+				CustomMappingHandler = handler;
+				return this;
+			}
 
 			/// <summary>
 			/// Returns the first record from the query result. 
@@ -223,14 +233,23 @@ namespace NReco.Data {
 						return default(T);
 					}
 				}
-				// T is a structure
+				// T is a dto
 				// special handling for dictionaries
 				var type = typeof(T);
 				if (type==typeof(IDictionary) || type==typeof(IDictionary<string,object>) || type==typeof(Dictionary<string,object>)) {
 					return (T)((object)ReadDictionary(rdr));
 				}
 				// handle as poco model
-				return (DtoMapper??DataMapper.Instance).MapTo<T>(rdr);
+				if (CustomMappingHandler!=null) {
+					var mappingContext = new MapperContext(DtoMapper, rdr, type);
+					var mapResult = CustomMappingHandler(mappingContext);
+					if (mapResult==null)
+						throw new NullReferenceException("Custom mapping handler returns null");
+					if (!(mapResult is T))
+						throw new InvalidCastException($"Custom mapping handler returns incompatible object type '{mapResult.GetType()}' (expected '{type}')");
+					return (T)mapResult;
+				}
+				return DtoMapper.MapTo<T>(rdr);
 			}
 		}
 		

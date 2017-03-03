@@ -102,6 +102,29 @@ namespace NReco.Data.Tests {
 			var customParam = new Microsoft.Data.Sqlite.SqliteParameter("test", "%John%");
 			Assert.Equal(1, DbAdapter.Select("select company_id from contacts where name like @test", customParam).Single<int>() );
 		}
+		
+		[Fact]
+		public void Select_CustomMapper() {
+			
+			var res = DbAdapter
+				.Select(new Query("contacts_view", (QField)"name" == (QConst)"Morris Scott") )
+				.SetMapper( (context)=> {
+					if (context.ObjectType==typeof(ContactModel)) {
+						var contact = (ContactModel)context.MapTo(context.ObjectType);
+						contact.Company = new CompanyModelAnnotated();
+						contact.Company.Id = Convert.ToInt32( context.DataReader["company_id"] );
+						contact.Company.Name = (string)context.DataReader["company_title"];
+						return contact;
+					}
+					// default handler
+					return context.MapTo(context.ObjectType);
+				})
+				.Single<ContactModel>();
+			Assert.NotNull(res.Company);
+			Assert.Equal(1, res.Company.Id.Value);
+			Assert.Equal("Microsoft", res.Company.Name);
+		}
+
 
 		[Fact]
 		public void InsertUpdateDelete_Dictionary() {
@@ -272,6 +295,9 @@ namespace NReco.Data.Tests {
 			public int? id { get; set; }
 			public string name { get; set; }
 			public int? company_id { get; set; }
+
+			// property is used in custom POCO mapping handler test
+			public CompanyModelAnnotated Company { get; set; }
 		}
 
 		[Table("companies")]
