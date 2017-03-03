@@ -14,7 +14,7 @@ namespace NReco.Data.Tests
 		public SqliteConnection DbConnection;	
 		public DbFactory DbFactory;
 
-		string DbFileName;
+		public string DbFileName;
 
 		public SqliteDbFixture() {
 			DbFileName = Path.GetTempFileName()+".sqlite";

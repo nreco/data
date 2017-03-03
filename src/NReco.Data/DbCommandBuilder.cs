@@ -169,7 +169,7 @@ namespace NReco.Data
 
 			// prepare WHERE part
 			var whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
-			var tblName = dbSqlBuilder.BuildTableName( query.Table.Name );
+			var tblName = dbSqlBuilder.BuildTableName( new QTable(query.Table.Name, null) );
 
 			var deleteTpl = new StringTemplate(DeleteTemplate);
 			SetCommandText(cmd, deleteTpl.FormatTemplate( (varName) => {
@@ -207,7 +207,7 @@ namespace NReco.Data
 
 			// prepare WHERE part
 			string whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
-			var tblName = dbSqlBuilder.BuildTableName( query.Table.Name );
+			var tblName = dbSqlBuilder.BuildTableName( new QTable(query.Table.Name, null) );
 
 			var updateTpl = new StringTemplate(UpdateTemplate);
 			SetCommandText(cmd, updateTpl.FormatTemplate( (varName) => {
@@ -245,7 +245,7 @@ namespace NReco.Data
 				values.Append(dbSqlBuilder.BuildValue(setField.Value));
 			}
 
-			var tblName = dbSqlBuilder.BuildTableName( tableName );
+			var tblName = dbSqlBuilder.BuildTableName( new QTable(tableName, null) );
 			var colStr = columns.ToString();
 			var valStr = values.ToString();
 
