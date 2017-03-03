@@ -7,7 +7,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MySqlDemo.DbMetadata.Models {
-	public class DataColumn {
+
+	public class ColumnMetadata {
 
 		[Column("column_name")]
 		public string ColumnName {

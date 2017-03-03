@@ -12,6 +12,14 @@ using NReco.Data;
 using MySqlDemo.DbMetadata.Models;
 
 namespace MySqlDemo.DbMetadata {
+
+	/// <summary>
+	/// This example illustrates how to use NReco.Data for getting database metadata (list of tables / table columns)
+	/// by querying 'information_schema' views (part of SQL-92, https://en.wikipedia.org/wiki/Information_schema).
+	/// </summary>
+	/// <remarks>
+	/// Note that 'information_schema' views are not supported by some databases (like Oracle, SQLite).
+	/// </remarks>
 	public class Program {
 
 		private static DbDataAdapter _dbAdapter;
@@ -35,40 +43,34 @@ namespace MySqlDemo.DbMetadata {
 
 		public static void Main(string[] args) {
 
-			Console.WriteLine("Fetch all columns from table 'transcript' of database 'ailuropoda_melanoleuca_otherfeatures_86_1'");
+			Console.WriteLine("Fetch 'transcript table' columns (database 'ailuropoda_melanoleuca_otherfeatures_86_1'):");
 			var customerTable = FetchTableMetaData("transcript");
-			Console.Write("Table added: {0}", customerTable.create_time);
+			Console.Write("Table added: {0}", customerTable.CreateTime);
 			Console.WriteLine();
 			Console.WriteLine();
 			foreach (var col in customerTable.Columns) {
-				Console.Write("Column name: {0}; Data type: {1}; IsNullable: {2} |", col.ColumnName, col.DataType, col.IsNullable);
-				Console.WriteLine();
+				Console.WriteLine("Column name: {0}; Data type: {1}; IsNullable: {2}", col.ColumnName, col.DataType, col.IsNullable);
 			}
+			Console.WriteLine("Press any key to continue...");
 			Console.ReadKey();
 		}
 
-		protected static MySqlDemo.DbMetadata.Models.DataTable FetchTableMetaData(string tableName) {
+		protected static TableMetadata FetchTableMetaData(string tableName) {
 			var query = new Query(
-				new QTable("information_schema.tables", null),
+				new QTable("INFORMATION_SCHEMA.tables", null),
 				(QField)"table_name" == (QConst)tableName).Select("table_name", "create_time"
 			);
-			var table = dbAdapter.Select(
-				query
-			).Single<MySqlDemo.DbMetadata.Models.DataTable>();
-
+			var table = dbAdapter.Select(query).Single<TableMetadata>();
 			GetColumnsMetadata(table);
-
 			return table;
 		}
 
-		protected static void GetColumnsMetadata(MySqlDemo.DbMetadata.Models.DataTable table) {
+		protected static void GetColumnsMetadata(TableMetadata table) {
 			var query = new Query(
-				new QTable("INFORMATION_SCHEMA.COLUMNS", null),
-				(QField)"TABLE_NAME" == (QConst)table.table_name).Select("column_name", "data_type", "is_nullable"
+				new QTable("INFORMATION_SCHEMA.columns", null),
+				(QField)"TABLE_NAME" == (QConst)table.TableName).Select("column_name", "data_type", "is_nullable"
 			);
-			var tableColumns = dbAdapter.Select(
-				query
-			).ToList<DataColumn>();
+			var tableColumns = dbAdapter.Select(query).ToList<ColumnMetadata>();
 
 			table.Columns = tableColumns;
 		}

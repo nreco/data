@@ -89,7 +89,7 @@ Query q = relexParser.Parse(relex);
 * [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs): CRUD operations with dictionaries, POCO, RecordSet
 * [DB WebApi](https://github.com/nreco/data/tree/master/examples/SqliteDemo.WebApi): configures NReco.Data services in MVC Core app, simple REST API for database tables
 * [MVC Core CRUD](https://github.com/nreco/data/tree/master/examples/SqliteDemo.MVCApplication): full-functional CRUD (list, add/edit forms) that uses NReco.Data as data layer in combination with EF Core
-* [DB Metadata](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DbMetadata): extract database metadata (list of tables, columns) with information_schema queries
+* [DB Metadata](https://github.com/nreco/data/tree/master/examples/MySqlDemo.DbMetadata): extract database metadata (list of tables, columns) with information_schema queries
 
 ## License
 Copyright 2016-2017 Vitaliy Fedorchenko and contributors
