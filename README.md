@@ -22,8 +22,10 @@ NuGet | Windows x64 | Ubuntu 14.04
 * supports both full .NET Framework 4.5+ and .NET Core (netstandard1.5)
 
 Nuget package: [NReco.Data](https://www.nuget.org/packages/NReco.Data/)
-
-Documentation: [API Reference](http://www.nrecosite.com/doc/NReco.Data/)
+NReco.Data documentation:
+* [Getting started and HowTos](https://github.com/nreco/data/wiki)
+* [API Reference](http://www.nrecosite.com/doc/NReco.Data/)
+* something is still not clear? Feel free to [ask a question on StackOverflow](http://stackoverflow.com/questions/ask?tags=nreco,c%23) 
 
 ## How to use 	
 **DbCommandBuilder for SqlClient**:
