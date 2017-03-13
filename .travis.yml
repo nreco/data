@@ -3,6 +3,15 @@ sudo: required
 dist: trusty
 dotnet: 1.0.0-preview2-003121
 solution: src/NReco.Data.sln
+
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ trusty main'
+      key_url: 'https://apt-mo.trafficmanager.net/keys/microsoft.asc'
+    packages:
+    - dotnet-dev-1.0.1
+
 script:
 - dotnet restore
-- dotnet test src/NReco.Data.Tests --configuration Release
+- dotnet test src/NReco.Data.Tests/NReco.Data.Tests.csproj --configuration Release

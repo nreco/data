@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26114.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NReco.Data", "NReco.Data\NReco.Data.csproj", "{42A98B2C-6070-4CDC-A760-795CC1BE66B1}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NReco.Data.Tests", "NReco.Data.Tests\NReco.Data.Tests.xproj", "{DC35C7B5-853C-4953-91F0-820E1437CE74}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NReco.Data.Tests", "NReco.Data.Tests\NReco.Data.Tests.csproj", "{DC35C7B5-853C-4953-91F0-820E1437CE74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

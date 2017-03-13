@@ -1,5 +1,5 @@
 version: 1.0.{build}
-os: Visual Studio 2015
+os: Visual Studio 2017
 configuration: Release
 platform: Any CPU
 
@@ -10,11 +10,11 @@ branches:
 skip_tags: true
 
 install:
-- cmd: dotnet restore
+- cmd: dotnet restore src\NReco.Data.sln
 
 build_script:
 - cmd: dotnet build src\NReco.Data --configuration Release
 - cmd: dotnet build src\NReco.Data.Tests --configuration Release
 
 test_script:
-- cmd: dotnet test src\NReco.Data.Tests --configuration Release
+- cmd: dotnet test src\NReco.Data.Tests\NReco.Data.Tests.csproj --configuration Release
