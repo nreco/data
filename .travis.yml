@@ -13,5 +13,5 @@ addons:
     - dotnet-dev-1.0.1
 
 script:
-- dotnet restore
+- dotnet restore src/NReco.Data.sln
 - dotnet test src/NReco.Data.Tests/NReco.Data.Tests.csproj --configuration Release
