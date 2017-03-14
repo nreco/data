@@ -38,6 +38,9 @@ namespace NReco.Data.Tests {
 		public void Select() {
 			// count: table
 			Assert.Equal(5, DbAdapter.Select(new Query("contacts").Select(QField.Count) ).Single<int>() );
+			// count for schema-qualified query
+			Assert.Equal(5, DbAdapter.Select( new Query( new QTable( "main.contacts",null) ).Select(QField.Count) ).Single<int>() );
+
 			// count: data view
 			Assert.Equal(5, DbAdapter.Select(new Query("contacts_view").Select(QField.Count) ).Single<int>() );
 
@@ -102,6 +105,29 @@ namespace NReco.Data.Tests {
 			var customParam = new Microsoft.Data.Sqlite.SqliteParameter("test", "%John%");
 			Assert.Equal(1, DbAdapter.Select("select company_id from contacts where name like @test", customParam).Single<int>() );
 		}
+		
+		[Fact]
+		public void Select_CustomMapper() {
+			
+			var res = DbAdapter
+				.Select(new Query("contacts_view", (QField)"name" == (QConst)"Morris Scott") )
+				.SetMapper( (context)=> {
+					if (context.ObjectType==typeof(ContactModel)) {
+						var contact = (ContactModel)context.MapTo(context.ObjectType);
+						contact.Company = new CompanyModelAnnotated();
+						contact.Company.Id = Convert.ToInt32( context.DataReader["company_id"] );
+						contact.Company.Name = (string)context.DataReader["company_title"];
+						return contact;
+					}
+					// default handler
+					return context.MapTo(context.ObjectType);
+				})
+				.Single<ContactModel>();
+			Assert.NotNull(res.Company);
+			Assert.Equal(1, res.Company.Id.Value);
+			Assert.Equal("Microsoft", res.Company.Name);
+		}
+
 
 		[Fact]
 		public void InsertUpdateDelete_Dictionary() {
@@ -109,20 +135,27 @@ namespace NReco.Data.Tests {
 			object recordId = null;
 			SqliteDb.OpenConnection( () => { 
 				Assert.Equal(1,
-					DbAdapter.Insert("companies", new Dictionary<string,object>() {
+					DbAdapter.Insert("main.companies", new Dictionary<string,object>() {
 						{"title", "Test Inc"},
 						{"country", "Norway"},
 						{"logo_image", null}
 					}) );				
 				recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection); 
 			} );
+			// update - schema qualified
+			Assert.Equal(1, 
+				DbAdapter.Update( new Query( new QTable("main.companies", null), (QField)"id"==new QConst(recordId) ), 
+					new Dictionary<string,object>() {
+						{"title", "Megacorp"}
+					}
+				) );
 			// update
 			Assert.Equal(1, 
 				DbAdapter.Update( new Query("companies", (QField)"id"==new QConst(recordId) ), 
-				new Dictionary<string,object>() {
-					{"title", "Megacorp Inc"}
-				}
-			) );
+					new Dictionary<string,object>() {
+						{"title", "Megacorp Inc"}
+					}
+				) );
 
 			var norwayCompanyQ = new Query("companies", (QField)"country"==(QConst)"Norway" );
 
@@ -130,6 +163,9 @@ namespace NReco.Data.Tests {
 
 			// cleanup
 			Assert.Equal(1, DbAdapter.Delete( norwayCompanyQ ) );
+
+			// delete - schema qualified (affects 0 records)
+			Assert.Equal(0, DbAdapter.Delete( new Query( new QTable("main.companies",null), (QField)"country"==(QConst)"bla" ) ) );
 		}
 
 		[Fact]
@@ -184,7 +220,7 @@ namespace NReco.Data.Tests {
 			Assert.Equal(RecordSet.RowState.Unchanged, newCompany1Row.State);
 
 			newCompany2Row["title"] = "Awesome Corp";
-			Assert.Equal(1, DbAdapter.Update("companies", companyRS));
+			Assert.Equal(1, DbAdapter.Update("main.companies", companyRS));
 			Assert.Equal(RecordSet.RowState.Unchanged, newCompany2Row.State);
 
 			// cleanup
@@ -272,6 +308,9 @@ namespace NReco.Data.Tests {
 			public int? id { get; set; }
 			public string name { get; set; }
 			public int? company_id { get; set; }
+
+			// property is used in custom POCO mapping handler test
+			public CompanyModelAnnotated Company { get; set; }
 		}
 
 		[Table("companies")]

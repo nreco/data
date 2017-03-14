@@ -45,7 +45,7 @@ namespace NReco.Data {
 			return setColumns.Select( c => new KeyValuePair<string,IQueryValue>(c.Name, new QVar(c.Name).Set(null) ) );
 		}
 		Query GetPkQuery() {
-			var q = new Query(TableName);
+			var q = new Query(new QTable(TableName, null));
 			var grpAnd = QGroupNode.And();
 			q.Condition = grpAnd;
 			foreach (var pkCol in RS.PrimaryKey) {

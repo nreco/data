@@ -285,7 +285,7 @@ namespace NReco.Data {
 			var schema = DataMapper.Instance.GetSchema(pocoModel.GetType());
 			if (schema.Key.Length==0)
 				throw new ArgumentException("Specified object doesn't have properties annotated with KeyAttribute.");
-			var q = new Query(schema.TableName);
+			var q = new Query( new QTable(schema.TableName, null) );
 			var andGroup = QGroupNode.And();
 			q.Condition = andGroup;
 			for (int i=0; i<schema.Key.Length; i++) {
