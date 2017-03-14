@@ -28,11 +28,6 @@ namespace SqliteDemo.GraphQLApi.Controllers {
 		}
 
 		[HttpGet("")]
-		public async Task<string> Get() {
-			return await Get("{ Customers_list { CustomerID CompanyName } }");
-		}
-
-		[HttpGet("{query}")]
 		public async Task<string> Get(string query) {
 			//query = @"{ Customers(CustomerID: ""ALFKI"") { CustomerID CompanyName } }";
 			//query = @"{ Customers_list { CustomerID CompanyName } }";

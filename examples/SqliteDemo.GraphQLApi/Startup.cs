@@ -89,6 +89,8 @@ namespace SqliteDemo.GraphQLApi {
 			loggerFactory.AddDebug();
 			//app.UseDeveloperExceptionPage();
 			//app.UseBrowserLink();
+			app.UseDefaultFiles();
+			app.UseStaticFiles();
 
 			app.UseMvc();
 		}
