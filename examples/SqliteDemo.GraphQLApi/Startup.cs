@@ -7,14 +7,10 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using SqliteDemo.GraphQLApi.Db.Context;
 using SqliteDemo.GraphQLApi.Db.Models;
-using SqliteDemo.GraphQLApi.Db.Interfaces;
-using SqliteDemo.GraphQLApi.Db.Repositories;
 
 using NReco.Data;
 using GraphQL;
@@ -43,26 +39,22 @@ namespace SqliteDemo.GraphQLApi {
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services) {
-			var dbConnectionString = String.Format("Filename={0}", Path.Combine(ApplicationPath, dbConnectionFile));
-			// Add EF framework services.
-			services.AddDbContext<DbCoreContext>(
-				options => options.UseSqlite(
-				   dbConnectionString
-				)
-			);
 			// let's inject NReco.Data services (based on EF DBConnection)
 			InjectNRecoDataService(services);
 			//
 			InjectGraphQLSchema(services);
-			services.AddScoped<DataRepository>();
+			services.AddScoped<IDatabaseMetadata, DatabaseMetadata>();
 			// Add framework services.
 			services.AddMvc();
 		}
 
 		protected void InjectGraphQLSchema(IServiceCollection services) {
 			services.AddScoped<Schema>((servicePrv) => {
-				var dataRepository = servicePrv.GetRequiredService<DataRepository>();
-				return new Schema { Query = new GraphQLQuery(dataRepository) };
+				var dbAdapter = servicePrv.GetRequiredService<DbDataAdapter>();
+				var metaDatabase = servicePrv.GetRequiredService<IDatabaseMetadata>();
+				var schema = new Schema { Query = new GraphQLQuery(dbAdapter, metaDatabase) };
+				schema.Initialize();
+				return schema;
 			});
 		}
 
@@ -82,28 +74,14 @@ namespace SqliteDemo.GraphQLApi {
 			});
 
 			services.AddScoped<IDbConnection>((servicePrv) => {
-				var dbCoreContext = servicePrv.GetRequiredService<DbCoreContext>();
-				var conn = dbCoreContext.Database.GetDbConnection();
+				var dbFactory = servicePrv.GetRequiredService<IDbFactory>();
+				var conn = dbFactory.CreateConnection();
+				conn.ConnectionString = String.Format("Filename={0}", Path.Combine(ApplicationPath, dbConnectionFile));
 				return conn;
 			});
 
 			services.AddScoped<DbDataAdapter>();
 		}
-
-		/*protected DbDataView ConfigureArticlesView()
-        {
-            return new DbDataView(
-                @"SELECT @columns FROM articles a
-					LEFT JOIN Users u ON (u.Id=a.AuthorId)
-				@where[ WHERE {0}] @orderby[ ORDER BY {0}]"
-            )
-            {
-                FieldMapping = new Dictionary<string, string>() {
-                    {"Id", "a.Id"},
-                    {"*", "a.*, u.FirstName as AuthorFirstName, u.SecondName as AuthorLastName"}
-                }
-            };
-        }*/
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
@@ -114,5 +92,6 @@ namespace SqliteDemo.GraphQLApi {
 
 			app.UseMvc();
 		}
+
 	}
 }

@@ -9,8 +9,6 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 
 using SqliteDemo.GraphQLApi.Db.GraphQL;
-using SqliteDemo.GraphQLApi.Db.Repositories;
-using SqliteDemo.GraphQLApi.Db.Interfaces;
 
 using GraphQL;
 using GraphQL.Http;
@@ -23,33 +21,30 @@ using GraphQL.Validation.Complexity;
 namespace SqliteDemo.GraphQLApi.Controllers {
 	[Route("api/[controller]")]
 	public class GraphQLController : Controller {
-		IDataRepository db;
 		Schema graphQLSchema;
 
-		public GraphQLController(DataRepository dataRepository, Schema schema) {
-			db = dataRepository;
+		public GraphQLController(Schema schema) {
 			graphQLSchema = schema;
 		}
 
-		// GET api/values
-		[HttpGet]
-		public IEnumerable<string> Get() {
-			return new string[] { "value1", "value2" };
+		[HttpGet("")]
+		public async Task<string> Get() {
+			return await Get("{ Customers_list { CustomerID CompanyName } }");
 		}
 
-		// GET api/article/5
 		[HttpGet("{query}")]
-		public async Task<string> GraphQL(string query) {
-			var result = await new DocumentExecuter().ExecuteAsync(_ => {
-				_.Schema = graphQLSchema;
-				_.Query = query;
-				/*@"
-               query { supplier(id: 2) { supplierID companyName } }
+		public async Task<string> Get(string query) {
+			//query = @"{ Customers(CustomerID: ""ALFKI"") { CustomerID CompanyName } }";
+			//query = @"{ Customers_list { CustomerID CompanyName } }";
 
-              ";*/
-			}).ConfigureAwait(false);
+			var result = await new DocumentExecuter().ExecuteAsync(
+				new ExecutionOptions() {
+					Schema = graphQLSchema,
+					Query = query
+				}
+			).ConfigureAwait(false);
 
-			var json = new DocumentWriter(indent: true).Write(result);
+			var json = new DocumentWriter(indent: true).Write(result.Data);
 			return json;
 		}
 
