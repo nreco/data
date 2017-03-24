@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,10 +28,10 @@ namespace NReco.Data {
 		/// <summary>
 		/// Represents select query (returned by <see cref="DbDataAdapter.Select"/> method).
 		/// </summary>
-		public abstract class SelectQuery {
+		public abstract class SelectQuery : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult {
 			readonly protected DbDataAdapter Adapter;
 			DataMapper DtoMapper;
-			Func<IMapperContext,object> CustomMappingHandler = null;
+			Func<IDataReaderMapperContext, object> CustomMappingHandler = null;
 
 			internal SelectQuery(DbDataAdapter adapter) {
 				Adapter = adapter;
@@ -43,18 +44,18 @@ namespace NReco.Data {
 				}
 			}
 
-			protected virtual int RecordOffset { get { return 0; } }
+			internal virtual int RecordOffset { get { return 0; } }
 
-			protected virtual int RecordCount { get { return Int32.MaxValue; } }
+			internal virtual int RecordCount { get { return Int32.MaxValue; } }
 
-			protected abstract IDbCommand GetSelectCmd();
+			internal abstract IDbCommand GetSelectCmd();
 
-			protected virtual string FirstFieldName { get { return null; } }
+			internal virtual string FirstFieldName { get { return null; } }
 
 			/// <summary>
 			/// Configures custom mapping handler for POCO models.
 			/// </summary>
-			public SelectQuery SetMapper(Func<IMapperContext,object> handler) {
+			public SelectQuery SetMapper(Func<IDataReaderMapperContext,object> handler) {
 				CustomMappingHandler = handler;
 				return this;
 			}
@@ -64,11 +65,12 @@ namespace NReco.Data {
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
 			public T Single<T>() {
-				var res = new SingleDataReaderResult<T>( Read<T> );
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, res);
+					return ExecuteCommand(selectCmd, CommandBehavior.SingleRow,
+						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, 1, FirstFieldName)
+							.SetMapper(CustomMappingHandler).Single<T>() 
+					);
 				}
-				return res.Result;
 			}
 
 			/// <summary>
@@ -85,23 +87,56 @@ namespace NReco.Data {
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
 			public Task<T> SingleAsync<T>(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<T>(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
-						new SingleDataReaderResult<T>( Read<T> ), cancel
-					);
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.SingleRow,
+						(rdr, c) => 
+							new DataReaderResult(rdr, DataReaderRecordOffset, 1, FirstFieldName)
+								.SetMapper(CustomMappingHandler).SingleAsync<T>(c),
+						cancel );
 				}
 			}
 
+			/// <summary>
+			/// Returns a list with all query results.
+			/// </summary>
+			/// <returns>list with query results</returns>
+			public List<T> ToList<T>() {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommand(selectCmd, CommandBehavior.Default,
+						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+							.SetMapper(CustomMappingHandler).ToList<T>());
+				}
+			}
+
+			/// <summary>
+			/// Asynchronously returns a list with all query results.
+			/// </summary>
+			public Task<List<T>> ToListAsync<T>() {
+				return ToListAsync<T>(CancellationToken.None);
+			}
+
+			/// <summary>
+			/// Asynchronously returns a list with all query results.
+			/// </summary>
+			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
+						(rdr, c) => 
+							new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+								.SetMapper(CustomMappingHandler).ToListAsync<T>(c),
+						cancel);
+				}
+			}
 
 			/// <summary>
 			/// Returns dictionary with first record values.
 			/// </summary>
 			/// <returns>dictionary with field values or null if query returns zero records.</returns>
 			public Dictionary<string,object> ToDictionary() {
-				var res = new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary );
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1, res);
+					return ExecuteCommand(selectCmd, CommandBehavior.SingleRow,
+						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, 1)
+							.SetMapper(CustomMappingHandler).ToDictionary());
 				}
-				return res.Result;
 			}
 
 			/// <summary>
@@ -116,13 +151,13 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<Dictionary<string,object>> ToDictionaryAsync(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<Dictionary<string,object>>(
-						selectCmd, CommandBehavior.SingleRow, DataReaderRecordOffset, 1,
-						new SingleDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
-					);
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.SingleRow,
+						(rdr, c) => 
+							new DataReaderResult(rdr, DataReaderRecordOffset, 1)
+								.SetMapper(CustomMappingHandler).ToDictionaryAsync(c),
+						cancel);
 				}
 			}
-
 
 			/// <summary>
 			/// Returns a list of dictionaries with all query results.
@@ -143,40 +178,12 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<List<Dictionary<string,object>>> ToDictionaryListAsync(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<List<Dictionary<string,object>>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
-						new ListDataReaderResult<Dictionary<string,object>>( ReadDictionary ), cancel
-					);
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
+						(rdr, c) => 
+							new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+								.SetMapper(CustomMappingHandler).ToDictionaryListAsync(c),
+						cancel);
 				}
-			}
-
-			/// <summary>
-			/// Returns a list with all query results.
-			/// </summary>
-			/// <returns>list with query results</returns>
-			public List<T> ToList<T>() {
-				var res = new ListDataReaderResult<T>( Read<T> );
-				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount, res);
-				}
-				return res.Result;
-			}
-
-			/// <summary>
-			/// Asynchronously returns a list with all query results.
-			/// </summary>
-			public Task<List<T>> ToListAsync<T>() {
-				return ToListAsync<T>(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously returns a list with all query results.
-			/// </summary>
-			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) {
-				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<List<T>>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
-						new ListDataReaderResult<T>( Read<T> ), cancel
-					);
-				}			
 			}
 
 			/// <summary>
@@ -185,7 +192,9 @@ namespace NReco.Data {
 			public RecordSet ToRecordSet() {
 				var res = new RecordSetDataReaderResult();
 				using (var selectCmd = GetSelectCmd()) {
-					DataHelper.ExecuteReader(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount, res);
+					return ExecuteCommand(selectCmd, CommandBehavior.Default,
+						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+							.SetMapper(CustomMappingHandler).ToRecordSet());
 				}
 				return res.Result;
 			}
@@ -202,55 +211,57 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<RecordSet> ToRecordSetAsync(CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return DataHelper.ExecuteReaderAsync<RecordSet>(selectCmd, CommandBehavior.Default, DataReaderRecordOffset, RecordCount,
-						new RecordSetDataReaderResult(), cancel
-					);
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
+						(rdr, c) => 
+							new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+								.SetMapper(CustomMappingHandler).ToRecordSetAsync(c),
+						cancel);
 				}				
 			}
 
-			private T ChangeType<T>(object o, TypeCode typeCode) {
-				return (T)Convert.ChangeType( o, typeCode, System.Globalization.CultureInfo.InvariantCulture );
-			}
-
-			private Dictionary<string,object> ReadDictionary(IDataReader rdr) {
-				var dictionary = new Dictionary<string,object>(rdr.FieldCount);
-				for (int i = 0; i < rdr.FieldCount; i++)
-					dictionary[rdr.GetName(i)] = rdr.GetValue(i);
-				return dictionary;
-			}
-
-			private T Read<T>(IDataReader rdr) {
-				var typeCode = Type.GetTypeCode(typeof(T));
-				// handle primitive single-value result
-				if (typeCode!=TypeCode.Object || typeof(T)==typeof(object) ) {
-					if (rdr.FieldCount==1) {
-						return ChangeType<T>( rdr[0], typeCode);
-					} else if (rdr.FieldCount>1) {
-						var firstFld = FirstFieldName;
-						var val = firstFld!=null ? rdr[firstFld] : rdr[0];
-						return ChangeType<T>( val, typeCode);
-					} else {
-						return default(T);
+			internal T ExecuteCommand<T>(IDbCommand cmd, CommandBehavior cmdBehaviour, Func<IDataReader,T> getResult) {
+				T res = default(T);
+				DataHelper.EnsureConnectionOpen(cmd.Connection, () => {
+					try {
+						using (var rdr = cmd.ExecuteReader(cmdBehaviour)) {
+							res = getResult(rdr);
+						}
+					} catch (Exception ex) {
+						throw new ExecuteDbCommandException(cmd, ex);
 					}
-				}
-				// T is a dto
-				// special handling for dictionaries
-				var type = typeof(T);
-				if (type==typeof(IDictionary) || type==typeof(IDictionary<string,object>) || type==typeof(Dictionary<string,object>)) {
-					return (T)((object)ReadDictionary(rdr));
-				}
-				// handle as poco model
-				if (CustomMappingHandler!=null) {
-					var mappingContext = new MapperContext(DtoMapper, rdr, type);
-					var mapResult = CustomMappingHandler(mappingContext);
-					if (mapResult==null)
-						throw new NullReferenceException("Custom mapping handler returns null");
-					if (!(mapResult is T))
-						throw new InvalidCastException($"Custom mapping handler returns incompatible object type '{mapResult.GetType()}' (expected '{type}')");
-					return (T)mapResult;
-				}
-				return DtoMapper.MapTo<T>(rdr);
+				});
+				return res;
 			}
+
+			internal async Task<T> ExecuteCommandAsync<T>(
+					IDbCommand cmd, CommandBehavior cmdBehaviour,
+					Func<IDataReader,CancellationToken,Task<T>> getResultAsync, CancellationToken cancel) {
+
+				var isOpenConn = cmd.Connection.State != ConnectionState.Closed;
+				if (!isOpenConn) {
+					await cmd.Connection.OpenAsync(cancel).ConfigureAwait(false);
+				}
+				IDataReader rdr = null;
+				T res = default(T);
+				try {
+					if (cmd is DbCommand) {
+						rdr = await ((DbCommand)cmd).ExecuteReaderAsync(cmdBehaviour, cancel).ConfigureAwait(false);
+					} else {
+						rdr = cmd.ExecuteReader(cmdBehaviour);
+					}
+					res = await getResultAsync(rdr, cancel).ConfigureAwait(false);
+				} catch (Exception ex) {
+					throw new ExecuteDbCommandException(cmd, ex);
+				} finally {
+					if (rdr!=null)
+						rdr.Dispose();
+					if (!isOpenConn)
+						cmd.Connection.Close();
+				}
+				return res;
+			}
+
+
 		}
 		
 		internal class SelectQueryByQuery : SelectQuery {
@@ -260,19 +271,19 @@ namespace NReco.Data {
 			internal SelectQueryByQuery(DbDataAdapter adapter, Query q) 
 				: base(adapter) {
 				Query = q;
-			} 
+			}
 
-			protected override IDbCommand GetSelectCmd() {
+			internal override IDbCommand GetSelectCmd() {
 				var selectCmd = Adapter.CommandBuilder.GetSelectCommand(Query);
 				Adapter.SetupCmd(selectCmd);
 				return selectCmd;
 			}
 
-			protected override int RecordOffset { get { return Query.RecordOffset; } }
+			internal override int RecordOffset { get { return Query.RecordOffset; } }
 
-			protected override int RecordCount { get { return Query.RecordCount; } }
+			internal override int RecordCount { get { return Query.RecordCount; } }
 
-			protected override string FirstFieldName { 
+			internal override string FirstFieldName { 
 				get { 
 					return Query.Fields!=null && Query.Fields.Length>0 ? Query.Fields[0].Name : null; 
 				} 
@@ -288,9 +299,9 @@ namespace NReco.Data {
 				: base(adapter) {
 				Sql = sql;
 				Parameters = parameters;
-			} 
+			}
 
-			protected override IDbCommand GetSelectCmd() {
+			internal override IDbCommand GetSelectCmd() {
 				var selectCmd = Adapter.CommandBuilder.DbFactory.CreateCommand();
 
 				var fmtArgs = new string[Parameters.Length];
@@ -312,9 +323,23 @@ namespace NReco.Data {
 				return selectCmd;
 			}
 
-		}		
-		
-			
-		
+		}
+
+		internal class SelectQueryByCmd : SelectQuery {
+
+			readonly IDbCommand Cmd;
+
+			internal SelectQueryByCmd(DbDataAdapter adapter, IDbCommand cmd)
+				: base(adapter) {
+				Cmd = cmd;
+			}
+
+			internal override IDbCommand GetSelectCmd() {
+				Adapter.SetupCmd(Cmd);
+				return Cmd;
+			}
+
+		}
+
 	}
 }

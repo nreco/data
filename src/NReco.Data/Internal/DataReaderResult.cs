@@ -72,7 +72,7 @@ namespace NReco.Data {
 		public void Init(IDataReader rdr) {
 			if (Result==null) {
 				Result = DataHelper.GetRecordSetByReader(rdr);
-			}			
+			}
 		}
 
 		public void Read(IDataReader rdr) {

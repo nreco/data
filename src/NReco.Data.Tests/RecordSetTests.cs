@@ -11,6 +11,22 @@ namespace NReco.Data.Tests
 
 	public class RecordSetTests
 	{
+
+		public static RecordSet generateRecordSet() {
+			var testRS = new RecordSet(new[] {
+					new RecordSet.Column("id", typeof(int)),
+					new RecordSet.Column("name", typeof(string)),
+					new RecordSet.Column("amount", typeof(decimal)),
+					new RecordSet.Column("added_date", typeof(DateTime))
+			});
+			for (int i = 0; i<100; i++) {
+				testRS.Add(new object[] {
+					i, "Name"+i.ToString(), i%20, new DateTime(2000, 1, 1).AddMonths(i)
+				});
+			}
+			return testRS;
+		}
+
 		[Fact]
 		public void CrudOperations() {
 			
@@ -86,17 +102,7 @@ namespace NReco.Data.Tests
 
 		[Fact]
 		public void RecordSetReader() {
-			var testRS = new RecordSet(new [] {
-					new RecordSet.Column("id", typeof(int)),
-					new RecordSet.Column("name", typeof(string)),
-					new RecordSet.Column("amount", typeof(decimal)),
-					new RecordSet.Column("added_date", typeof(DateTime))			
-			});
-			for (int i=0; i<100; i++) {
-				testRS.Add( new object[] {
-					i, "Name"+i.ToString(), i%20, new DateTime(2000, 1, 1).AddMonths(i)
-				});
-			}
+			var testRS = generateRecordSet();
 
 			var rdr = new RecordSetReader(testRS);
 

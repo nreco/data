@@ -91,6 +91,16 @@ namespace NReco.Data {
 			return new SelectQueryBySql(this, sql, parameters);
 		}
 
+		/// <summary>
+		/// Creates a <see cref="SelectQuery"/> based on specified <see cref="IDbCommand"/> instance.
+		/// </summary>
+		/// <param name="cmd">custom command</param>
+		/// <returns>prepared select query</returns>
+		/// <remarks>This method allows to execute custom SQL command and map results like for usual SELECT command.</remarks>
+		public SelectQuery Select(IDbCommand cmd) {
+			return new SelectQueryByCmd(this, cmd);
+		}
+
 		int InsertInternal(string tableName, IEnumerable<KeyValuePair<string,IQueryValue>> data) {
 			if (tableName==null)
 				throw new ArgumentNullException($"{nameof(tableName)}");
