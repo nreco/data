@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>High-performance, schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, annotated POCO mapping, app-level data views, RecordSet structure (replacement for DataTable).</Description>
+    <Description>High-performance, schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable).</Description>
     <Copyright>Copyright (c) 2016-2017 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionPrefix>1.0.2</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
     <TargetFrameworks>net45;netstandard1.5</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
