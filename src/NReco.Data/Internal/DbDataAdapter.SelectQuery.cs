@@ -190,13 +190,11 @@ namespace NReco.Data {
 			/// Returns all query results as <see cref="RecordSet"/>.
 			/// </summary>
 			public RecordSet ToRecordSet() {
-				var res = new RecordSetDataReaderResult();
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommand(selectCmd, CommandBehavior.Default,
 						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
 							.SetMapper(CustomMappingHandler).ToRecordSet());
 				}
-				return res.Result;
 			}
 
 			/// <summary>
@@ -217,6 +215,24 @@ namespace NReco.Data {
 								.SetMapper(CustomMappingHandler).ToRecordSetAsync(c),
 						cancel);
 				}				
+			}
+
+			/// <summary>
+			/// Executes data reader and returns custom handler result. 
+			/// </summary>
+			public T ExecuteReader<T>(Func<IDataReader,T> readHandler) {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommand<T>(selectCmd, CommandBehavior.Default, readHandler);
+				}
+			}
+
+			/// <summary>
+			/// Asynchronously executes data reader and returns custom handler result. 
+			/// </summary>
+			public Task<T> ExecuteReaderAsync<T>(Func<IDataReader, CancellationToken, Task<T>> readHandlerAsync, CancellationToken cancel) {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommandAsync<T>(selectCmd, CommandBehavior.Default, readHandlerAsync, cancel);
+				}
 			}
 
 			internal T ExecuteCommand<T>(IDbCommand cmd, CommandBehavior cmdBehaviour, Func<IDataReader,T> getResult) {

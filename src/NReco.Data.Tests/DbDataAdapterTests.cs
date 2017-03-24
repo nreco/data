@@ -303,6 +303,24 @@ namespace NReco.Data.Tests {
 			Assert.Equal(1, await DbAdapter.DeleteAsync( newCompany ).ConfigureAwait(false) );
 		}
 
+		[Fact]
+		public void Select_MultipleResultSets() {
+			var batchCmdBuilder = new DbBatchCommandBuilder(DbAdapter.CommandBuilder.DbFactory);
+			batchCmdBuilder.BeginBatch();
+			batchCmdBuilder.GetSelectCommand(new Query("companies"));
+			batchCmdBuilder.GetSelectCommand(new Query("contacts"));
+			var selectMultipleCmd = batchCmdBuilder.EndBatch();
+
+			(var companies, var contacts) = DbAdapter.Select(selectMultipleCmd).ExecuteReader( (rdr) => {
+				var companiesRes = new DataReaderResult(rdr).ToList<CompanyModelAnnotated>();
+				rdr.NextResult();
+				var contactsRes = new DataReaderResult(rdr).ToList<ContactModel>();
+				return (companiesRes, contactsRes);
+			});
+			Assert.Equal(2, companies.Count);
+			Assert.Equal(5, contacts.Count);
+		}
+
 
 		public class ContactModel {
 			public int? id { get; set; }
