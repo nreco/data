@@ -5,28 +5,57 @@ NuGet | Windows x64 | Ubuntu 14.04
 --- | --- | ---
 [![NuGet Release](https://img.shields.io/nuget/v/NReco.Data.svg)](https://www.nuget.org/packages/NReco.Data/) | [![AppVeyor](https://img.shields.io/appveyor/ci/nreco/data/master.svg)](https://ci.appveyor.com/project/nreco/data) | [![Travis CI](https://img.shields.io/travis/nreco/data/master.svg)](https://travis-ci.org/nreco/data) 
 
-
+* very fast: NReco.Data shows almost the same performance as Dapper but offers more features
 * abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code, can be constructed dynamically
-* DbCommandBuilder for generating SELECT, INSERT, UPDATE and DELETE commands
-* DbBatchCommandBuilder for generating several SQL statements into one IDbCommand (batch inserts, updates, selects for multiple recordsets)
-* [RecordSet model](https://github.com/nreco/data/wiki/RecordSet) for in-memory data records (lightweight and efficient replacement for DataTable/DataRow)
-* DbDataAdapter for CRUD-operations:
-  * supports annotated POCO models (EF Core entity models), custom query result mapping
-  * API for schema-less data access (dictionaries / RecordSet)
-  * can handle results returned by stored procedure, multiple record sets
-  * async supported for all methods
+* generate several SQL statements into one IDbCommand (batch inserts, updates, selects for multiple recordsets: *DbBatchCommandBuilder*)
+* supports annotated POCO models (EF Core entity models), custom query result mapping
+* API for schema-less data access (dictionaries / RecordSet)
+* can handle results returned by stored procedure, multiple record sets
 * application-level data views (for complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * parser for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
-* can be used with any existing ADO.NET data provider (MsSql, PostgreSql, Sqlite, MySql etc)
+* can be used with any existing ADO.NET data provider (SQL Server, PostgreSql, Sqlite, MySql etc)
 * supports both full .NET Framework 4.5+ and .NET Core (netstandard1.5)
+
+## Quick reference
+Class | Dependencies | Purpose
+--- | --- | ---
+`DbFactory` | | incapsulates DB-specific functions and conventions 
+`DbCommandBuilder` | *IDbFactory* | composes *IDbCommand* and SQL text for SELECT/UPDATE/DELETE/INSERT, handles app-level dataviews
+`DbDataAdapter` | *IDbCommandBuilder*, *IDbConnection* | CRUD operations for model, dictionary or *[RecordSet](https://github.com/nreco/data/wiki/RecordSet)*: Insert/Update/Delete/Select. Async versions are supported for all methods.
+`Query` | | Represents abstract query to database; used as parameter in *DbCommandBuilder*, *DbDataAdapter*
+`RelexParser` | | Parsers query string expression ([Relex](https://github.com/nreco/data/wiki/Relex)) into *Query* structure
+`RecordSet` | | [RecordSet model](https://github.com/nreco/data/wiki/RecordSet) represents in-memory data records, this is lightweight and efficient replacement for classic *DataTable*/*DataRow*
+`DataReaderResult` | *IDataReader* | reads data from any data reader and maps it to models, dictionaries or *RecordSet*
 
 NReco.Data documentation:
 * [Getting started and HowTos](https://github.com/nreco/data/wiki)
-* [API Reference](http://www.nrecosite.com/doc/NReco.Data/)
+* [Full API Reference](http://www.nrecosite.com/doc/NReco.Data/)
 * something is still not clear? Feel free to [ask a question on StackOverflow](http://stackoverflow.com/questions/ask?tags=nreco,c%23) 
 
-## How to use 	
-**DbCommandBuilder for SqlClient**:
+## How to use
+Generic implementation of `DbFactory` can be used with any ADO.NET connector. 
+**DbFactory initialization for SqlClient**:
+```
+var dbFactory = new DbFactory(System.Data.SqlClient.SqlClientFactory.Instance) {
+	LastInsertIdSelectText = "SELECT @@IDENTITY" };
+```
+**DbFactory initialization for Mysql**:
+```
+var dbFactory = new DbFactory(MySql.Data.MySqlClient.MySqlClientFactory.Instance) {
+	LastInsertIdSelectText = "SELECT LAST_INSERT_ID()" };
+```
+**DbFactory initialization for Postgresql**:
+```
+var dbFactory = new DbFactory(Npgsql.NpgsqlFactory.Instance) {
+	LastInsertIdSelectText = "SELECT lastval()" };
+```
+**DbFactory initialization for Sqlite**:
+```
+var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
+	LastInsertIdSelectText = "SELECT last_insert_rowid()" };
+```
+
+**DbCommandBuilder** generates SQL commands by [Query](https://github.com/nreco/data/wiki/Query):
 ```
 var dbFactory = new DbFactory(System.Data.SqlClient.SqlClientFactory.Instance) {
 	LastInsertIdSelectText = "SELECT @@IDENTITY"
@@ -39,22 +68,17 @@ var insertCmd = dbCmdBuilder.GetInsertCommand(
 var deleteCmd = dbCmdBuilder.GetDeleteCommand(
 	new Query("Employees", (QField)"Name" == (QConst)"John Smith" ) );
 ```
-**Sqlite** - only difference is:
-```
-var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
-	LastInsertIdSelectText = "SELECT last_insert_rowid()"
-};
-```
+
 **DbDataAdapter** - provides simple API for CRUD-operations:
 ```
 var dbConnection = dbFactory.CreateConnection();
 var dbAdapter = new DbDataAdapter(dbConnection, dbCmdBuilder);
 // map select results to POCO models
-var employeeModelsList = dbAdapter.Select<Employee>( new Query("Employees") ).ToList(); 
+var employeeModelsList = dbAdapter.Select( new Query("Employees") ).ToList<Employee>();
 // read select result to dictionary
 var employeeDictionary = dbAdapter.Select( 
-		new Query("Employees", (QField)"EmployeeID"==(QConst)newEmployee.EmployeeID ).Select("FirstName","LastName") 
-	).ToDictionary();
+    new Query("Employees", (QField)"EmployeeID"==(QConst)newEmployee.EmployeeID ).Select("FirstName","LastName") 
+  ).ToDictionary();
 // update by dictionary
 dbAdapter.Update( 
 	new Query("Employees", (QField)"EmployeeID"==(QConst)1001 ),
