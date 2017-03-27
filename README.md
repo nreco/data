@@ -34,6 +34,7 @@ NReco.Data documentation:
 
 ## How to use
 Generic implementation of `DbFactory` can be used with any ADO.NET connector. 
+
 **DbFactory initialization for SqlClient**:
 ```
 var dbFactory = new DbFactory(System.Data.SqlClient.SqlClientFactory.Instance) {
@@ -57,9 +58,6 @@ var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
 
 **DbCommandBuilder** generates SQL commands by [Query](https://github.com/nreco/data/wiki/Query):
 ```
-var dbFactory = new DbFactory(System.Data.SqlClient.SqlClientFactory.Instance) {
-	LastInsertIdSelectText = "SELECT @@IDENTITY"
-};
 var dbCmdBuilder = new DbCommandBuilder(dbFactory);
 var selectCmd = dbCmdBuilder.GetSelectCommand( 
 	new Query("Employees", (QField)"BirthDate" > new QConst(new DateTime(1960,1,1)) ) );
@@ -72,6 +70,7 @@ var deleteCmd = dbCmdBuilder.GetDeleteCommand(
 **DbDataAdapter** - provides simple API for CRUD-operations:
 ```
 var dbConnection = dbFactory.CreateConnection();
+dbConnection.ConnectionString = "<db_connection_string>";
 var dbAdapter = new DbDataAdapter(dbConnection, dbCmdBuilder);
 // map select results to POCO models
 var employeeModelsList = dbAdapter.Select( new Query("Employees") ).ToList<Employee>();
