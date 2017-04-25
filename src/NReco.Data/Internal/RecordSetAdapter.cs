@@ -74,7 +74,6 @@ namespace NReco.Data {
 					} else {
 						p.Value = rowVal;
 					}
-					p.Value = rowVal ?? DBNull.Value;
 				}
 			}			
 		}
