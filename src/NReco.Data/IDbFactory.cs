@@ -62,7 +62,7 @@ namespace NReco.Data
 		public string Placeholder { get; private set; }
 		public IDbDataParameter Parameter { get; private set; }
 
-		public CommandParameter(string placeholder, DbParameter dbParam) {
+		public CommandParameter(string placeholder, IDbDataParameter dbParam) {
 			Placeholder = placeholder;
 			Parameter = dbParam;
 		}
