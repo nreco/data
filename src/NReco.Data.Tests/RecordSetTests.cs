@@ -140,6 +140,9 @@ namespace NReco.Data.Tests
 			Assert.Equal( testRS.Count, testRSCopy.Count );
 			Assert.Equal( testRS.Columns.Count, testRSCopy.Columns.Count );
 
+			var testRSCopyOneRec = RecordSet.FromReader(new RecordSetReader(testRS), 1);
+			Assert.Equal(1, testRSCopyOneRec.Count);
+
 			// read into initialized RecordSet
 			var newRS = new RecordSet(
 				new[] {

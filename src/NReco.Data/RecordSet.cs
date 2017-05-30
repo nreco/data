@@ -231,20 +231,30 @@ namespace NReco.Data {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="RecordSet"/> from a data source using the supplied <see cref="IDataReader"/>.
+		/// Creates a <see cref="RecordSet"/> and reads all rows from the supplied <see cref="IDataReader"/>.
 		/// </summary>
 		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
 		/// <returns><see cref="RecordSet"/> with schema inferred by reader and populated with incoming data.</returns>
 		public static RecordSet FromReader(IDataReader rdr) {
-			RecordSet rs = null;
-			while (rdr.Read()) {
-				if (rs==null) {
-					rs = DataHelper.GetRecordSetByReader(rdr);
-				}
+			return FromReader(rdr, -1);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="RecordSet"/> and reads all rows from the supplied <see cref="IDataReader"/>.
+		/// </summary>
+		/// <param name="rdr">An <see cref="IDataReader"/> that provides a result set.</param>
+		/// <param name="rowsCount">Max number of rows to load (-1 means no limit).</param> 
+		/// <returns><see cref="RecordSet"/> with schema inferred by reader and populated with incoming data.</returns>
+		public static RecordSet FromReader(IDataReader rdr, int rowsCount) {
+			RecordSet rs = DataHelper.GetRecordSetByReader(rdr);
+			int read = 0;
+			bool loadAll = rowsCount<0;
+			while ( (loadAll || read<rowsCount) && rdr.Read()) {
 				// just copy values
 				var rowValues = new object[rdr.FieldCount];
 				rdr.GetValues(rowValues);
 				rs.Add(rowValues).AcceptChanges();
+				read++;
 			}
 			return rs;
 		}
