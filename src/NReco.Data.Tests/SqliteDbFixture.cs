@@ -5,14 +5,16 @@ using System.Threading.Tasks;
 using System.IO;
 
 using System.Data;
+using System.Data.Common;
 using Microsoft.Data.Sqlite;
+using System.Threading;
 
 namespace NReco.Data.Tests
 {
     public class SqliteDbFixture : IDisposable
     {
 		public SqliteConnection DbConnection;	
-		public DbFactory DbFactory;
+		public SqlLogDbFactory DbFactory;
 
 		public string DbFileName;
 
@@ -20,7 +22,7 @@ namespace NReco.Data.Tests
 			DbFileName = Path.GetTempFileName()+".sqlite";
 
 			DbConnection = new SqliteConnection( $"Data Source={DbFileName}" );
-			DbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
+			DbFactory = new SqlLogDbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
 				LastInsertIdSelectText = "SELECT last_insert_rowid()"
 			};
 			CreateDb();
@@ -72,5 +74,90 @@ namespace NReco.Data.Tests
 			if (File.Exists(DbFileName))
 				File.Delete(DbFileName);
 		}
+
+		// collects SQL command texts of executed queries.
+		public class SqlLogDbFactory : DbFactory {
+
+			public List<string> SqlLog { get; private set; } = new List<string>();
+
+			public SqlLogDbFactory(DbProviderFactory dbPrvFactory) : base(dbPrvFactory) {
+
+			}
+
+			public override IDbCommand CreateCommand() {
+				var realCmd = (DbCommand)base.CreateCommand();
+				return new SqlLogDbCommand(realCmd, this);
+			}
+
+			public class SqlLogDbCommand : DbCommand {
+				DbCommand DbCmd;
+				SqlLogDbFactory LogDbFactory;
+
+				internal SqlLogDbCommand(DbCommand realCmd, SqlLogDbFactory logDbFactory) {
+					DbCmd = realCmd;
+					LogDbFactory = logDbFactory;
+				}
+
+				public override string CommandText { get => DbCmd.CommandText; set => DbCmd.CommandText = value; }
+				public override int CommandTimeout { get => DbCmd.CommandTimeout; set => DbCmd.CommandTimeout = value; }
+				public override CommandType CommandType { get => DbCmd.CommandType; set => DbCmd.CommandType = value; }
+				public override bool DesignTimeVisible { get => DbCmd.DesignTimeVisible; set => DbCmd.DesignTimeVisible = value; }
+				public override UpdateRowSource UpdatedRowSource { get => DbCmd.UpdatedRowSource; set => DbCmd.UpdatedRowSource = value; }
+				protected override DbConnection DbConnection { get => DbCmd.Connection; set => DbCmd.Connection = value; }
+				protected override DbParameterCollection DbParameterCollection => DbCmd.Parameters;
+				protected override DbTransaction DbTransaction { get => DbCmd.Transaction; set => DbCmd.Transaction = value; }
+
+				public override void Cancel() {
+					DbCmd.Cancel();
+				}
+
+				public override void Prepare() {
+					DbCmd.Prepare();
+				}
+
+				protected override DbParameter CreateDbParameter() {
+					return DbCmd.CreateParameter();
+				}
+
+				T ExecuteWithLogging<T>(Func<T> exec) {
+					LogDbFactory.SqlLog.Add(CommandText);
+					return exec();
+				}
+
+				Task<T> ExecuteWithLogging<T>(Func<Task<T>> exec) {
+					LogDbFactory.SqlLog.Add(CommandText);
+					return exec();
+				}
+
+				public override int ExecuteNonQuery() {
+					return ExecuteWithLogging(DbCmd.ExecuteNonQuery);
+				}
+
+				public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken) {
+					return ExecuteWithLogging(() => DbCmd.ExecuteNonQueryAsync(cancellationToken));
+				}
+
+				public override object ExecuteScalar() {
+					return ExecuteWithLogging(DbCmd.ExecuteScalar);
+				}
+
+				public override Task<object> ExecuteScalarAsync(CancellationToken cancellationToken) {
+					return ExecuteWithLogging(() => DbCmd.ExecuteScalarAsync(cancellationToken));
+				}
+
+				protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
+					return ExecuteWithLogging(() => DbCmd.ExecuteReader(behavior));
+				}
+
+				protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) {
+					return ExecuteWithLogging(() => DbCmd.ExecuteReaderAsync(behavior, cancellationToken));
+				}
+			}
+
+
+		}
+
+
+
 	}
 }

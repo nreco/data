@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 using Xunit;
 
@@ -74,7 +75,6 @@ namespace NReco.Data.Tests {
 			var companies = DbAdapter.Select(new Query("companies").OrderBy("id")).ToList<CompanyModelAnnotated>();
 			Assert.Equal(2, companies.Count);
 			Assert.Equal("Microsoft", companies[0].Name);
-
 		}
 
 		[Fact]
@@ -104,6 +104,16 @@ namespace NReco.Data.Tests {
 			// custom db param
 			var customParam = new Microsoft.Data.Sqlite.SqliteParameter("test", "%John%");
 			Assert.Equal(1, DbAdapter.Select("select company_id from contacts where name like @test", customParam).Single<int>() );
+
+			// select raw SQL
+			var companyId = 1;
+			Assert.Equal("Microsoft", DbAdapter.Select("select title from companies where id={0}", companyId).Single<string>());
+			Assert.Equal("select title from companies where id=@p0", SqliteDb.DbFactory.SqlLog.Last());
+
+			// select raw SQL interpolated string
+			Assert.Equal("Microsoft", DbAdapter.Select( $"select title from companies where id={companyId}").Single<string>());
+			// ensure that parametrized command is generated
+			Assert.Equal("select title from companies where id=@p0", SqliteDb.DbFactory.SqlLog.Last());
 		}
 		
 		[Fact]

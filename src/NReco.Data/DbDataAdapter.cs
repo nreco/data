@@ -87,9 +87,25 @@ namespace NReco.Data {
 		/// <code>dbAdapter.Select("SELECT * FROM [dbo].[SearchBlogs]({@searchTerm})", new SqlParameter("@searchTerm", userSuppliedSearchTerm)).ToRecordSet()</code>
 		/// </para>
 		/// </remarks>
-		public SelectQuery Select(string sql, params object[] parameters) {
-			return new SelectQueryBySql(this, sql, parameters);
+		public SelectQuery Select(RawSqlString sql, params object[] parameters) {
+			return new SelectQueryBySql(this, sql.Format, parameters);
 		}
+
+#if NET_STANDARD
+		/// <summary>
+		/// Creates a <see cref="SelectQuery"/> based on an interpolated string representing a SQL query.
+		/// </summary>
+		/// <remarks>
+		/// Semantics of this method is similar to EF Core DbSet.FromSql:
+		/// <code>
+		/// dbAdapter.Select($"SELECT * FROM Users WHERE id={userId}").Single&lt;User&gt;();
+		/// </code>
+		/// All parameters will automatically be converted to a DbParameter.
+		/// </remarks>
+		public SelectQuery Select(FormattableString sql) {
+			return new SelectQueryBySql(this, sql.Format, sql.GetArguments());
+		}
+#endif
 
 		/// <summary>
 		/// Creates a <see cref="SelectQuery"/> based on specified <see cref="IDbCommand"/> instance.
