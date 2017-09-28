@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace NReco.Data {
 	
-#if NET_STANDARD
+#if NET_STANDARD1
 	internal static class NetStandardCompatibility {
 		internal static PropertyInfo[] GetProperties(this Type t) {
 			return t.GetTypeInfo().GetProperties();

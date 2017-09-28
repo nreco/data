@@ -236,7 +236,7 @@ namespace NReco.Data {
 			return true;
 		}
 
-		#if !NET_STANDARD
+		#if !NET_STANDARD1
 		public override System.Data.DataTable GetSchemaTable() {
 			throw new NotImplementedException("Currently RecordSetReader does not implement GetSchemaTable. If you need it please add an issue here: https://github.com/nreco/data/issues");
 		}

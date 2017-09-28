@@ -56,7 +56,7 @@ namespace NReco.Data {
 
 		bool IsBinaryType(Type t) {
 			return t==typeof(byte[])
-			#if !NET_STANDARD
+			#if !NET_STANDARD1
 				|| t==typeof(System.Data.SqlTypes.SqlBytes) || t==typeof(System.Data.SqlTypes.SqlBinary)
 			#endif
 			;
