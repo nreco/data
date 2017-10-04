@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqliteDemo.CommandBuilder", "SqliteDemo.CommandBuilder\SqliteDemo.CommandBuilder.csproj", "{E138270B-84B3-4A0C-82E6-CE283F9D53EA}"
 EndProject
@@ -14,7 +14,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySqlDemo.DbMetadata", "MyS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqliteDemo.GraphQLAPI", "SqliteDemo.GraphQLApi\SqliteDemo.GraphQLAPI.csproj", "{F79B488D-8779-4FE9-B27D-617F9A431739}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqliteDemo.SqlLogging", "SqliteDemo.SqlLogging\SqliteDemo.SqlLogging.csproj", "{B9C42268-CBEF-46CF-A44B-ADC01737F67E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqliteDemo.SqlLogging", "SqliteDemo.SqlLogging\SqliteDemo.SqlLogging.csproj", "{B9C42268-CBEF-46CF-A44B-ADC01737F67E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataSetGenericDataAdapter", "DataSetGenericDataAdapter\DataSetGenericDataAdapter.csproj", "{B48FD072-C587-4387-9625-6F67B328C42E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,8 +112,23 @@ Global
 		{B9C42268-CBEF-46CF-A44B-ADC01737F67E}.Release|x64.Build.0 = Release|Any CPU
 		{B9C42268-CBEF-46CF-A44B-ADC01737F67E}.Release|x86.ActiveCfg = Release|Any CPU
 		{B9C42268-CBEF-46CF-A44B-ADC01737F67E}.Release|x86.Build.0 = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|x64.Build.0 = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Debug|x86.Build.0 = Debug|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|x64.ActiveCfg = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|x64.Build.0 = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|x86.ActiveCfg = Release|Any CPU
+		{B48FD072-C587-4387-9625-6F67B328C42E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {53B4C967-C2C7-4D78-AD74-EF496B12AA94}
 	EndGlobalSection
 EndGlobal
