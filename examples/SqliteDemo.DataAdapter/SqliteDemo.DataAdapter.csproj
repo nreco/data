@@ -18,4 +18,12 @@
     <PackageReference Include="NReco.Data" Version="1.0.1" />
   </ItemGroup>
 
+  <ItemGroup>  
+    <MySourceFiles Include="$(MSBuildProjectDirectory)/../DemoData/northwind.db"/>  
+  </ItemGroup>
+  <Target Name="CopySqliteDbFile" BeforeTargets="Build">
+	<Copy SourceFiles="@(MySourceFiles)"  
+          DestinationFolder="$(MSBuildProjectDirectory)"/>  
+  </Target>   
+  
 </Project>

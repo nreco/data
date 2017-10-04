@@ -30,8 +30,16 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="1.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="1.0.1" />
-    <PackageReference Include="NReco.Data" Version="1.0.1" />
+    <PackageReference Include="NReco.Data" Version="1.0.3" />
 	<PackageReference Include="GraphQL" Version="0.14.6.657" />
   </ItemGroup>
 
+  <ItemGroup>  
+    <MySourceFiles Include="$(MSBuildProjectDirectory)/../DemoData/northwind.db"/>  
+  </ItemGroup>
+  <Target Name="CopySqliteDbFile" BeforeTargets="Build">
+	<Copy SourceFiles="@(MySourceFiles)"  
+          DestinationFolder="$(MSBuildProjectDirectory)"/>  
+  </Target>  
+  
 </Project>
