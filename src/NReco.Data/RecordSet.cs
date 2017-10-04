@@ -391,7 +391,7 @@ namespace NReco.Data {
 				DataType = dbCol.DataType;
 				AllowDBNull = dbCol.AllowDBNull.HasValue ? dbCol.AllowDBNull.Value : true;
 				ReadOnly = dbCol.IsReadOnly.HasValue ? dbCol.IsReadOnly.Value : false;
-				AutoIncrement = dbCol.AllowDBNull.HasValue ? dbCol.IsAutoIncrement.Value : false;
+				AutoIncrement = dbCol.IsAutoIncrement.HasValue ? dbCol.IsAutoIncrement.Value : false;
 			}
 			#endif
 		}

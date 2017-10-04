@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 
 using Xunit;
 namespace NReco.Data.Tests
@@ -52,6 +53,31 @@ namespace NReco.Data.Tests
 			public string name { get; set; }
 			public decimal amount { get; set; }
 			public DateTime added_date { get; set; }
+		}
+
+		[Fact]
+		public void ReadToDataTable() {
+			var rs = RecordSetTests.generateRecordSet();
+
+			var tblWithOneRow = new DataReaderResult(new RecordSetReader(rs), 0, 1).ToDataTable();
+			Assert.Equal(1, tblWithOneRow.Rows.Count);
+			Assert.Equal(4, tblWithOneRow.Columns.Count);
+			Assert.Equal(0, tblWithOneRow.Rows[0]["id"]);
+			Assert.Equal("Name0", tblWithOneRow.Rows[0]["name"]);
+
+			var tblAll = new DataReaderResult(new RecordSetReader(rs) ).ToDataTable();
+			Assert.Equal(100, tblAll.Rows.Count);
+
+			// load into specified DataTable
+			var ds = new DataSet();
+			var testTbl = ds.Tables.Add("test");
+			var idCol = testTbl.Columns.Add("id", typeof(int));
+			idCol.AllowDBNull = false;
+			testTbl.PrimaryKey = new[] { idCol };
+			new DataReaderResult(new RecordSetReader(rs)).ToDataTable(testTbl);
+			Assert.Equal(4, testTbl.Columns.Count);  // missed cols are added automatically
+			Assert.Equal(100, testTbl.Rows.Count);
+			Assert.Equal("Name20", testTbl.Rows.Find(20)["name"] );
 		}
 
 

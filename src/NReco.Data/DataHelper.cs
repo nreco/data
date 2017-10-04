@@ -103,6 +103,48 @@ namespace NReco.Data {
 			return rs;
 		}
 
+#if !NET_STANDARD1
+		internal static void EnsureDataTableColumnsByReader(DataTable tbl, IDataReader rdr) {
+			#if NET_STANDARD
+			// lets populate data schema
+			if (rdr is DbDataReader) {
+				var dbRdr = (DbDataReader)rdr;
+				if (dbRdr.CanGetColumnSchema()) {
+					var pkCols = new List<DataColumn>();
+					foreach (var dbCol in dbRdr.GetColumnSchema()) {
+						DataColumn col = null;
+						if (!tbl.Columns.Contains(dbCol.ColumnName)) {
+							col = tbl.Columns.Add(dbCol.ColumnName, dbCol.DataType);
+							if (dbCol.AllowDBNull.HasValue)
+								col.AllowDBNull = dbCol.AllowDBNull.Value;
+							if (dbCol.IsAutoIncrement.HasValue && dbCol.IsAutoIncrement.Value)
+								col.AutoIncrement = true;
+							if (dbCol.IsReadOnly.HasValue)
+								col.ReadOnly = dbCol.IsReadOnly.Value;
+						} else {
+							col = tbl.Columns[dbCol.ColumnName];
+						}
+						if (dbCol.IsKey.HasValue && dbCol.IsKey.Value)
+							pkCols.Add(col);
+					}
+					if (pkCols.Count > 0 && (tbl.PrimaryKey == null || tbl.PrimaryKey.Length == 0))
+						tbl.PrimaryKey = pkCols.ToArray();
+				}
+			}
+			#endif
+
+			// lets suggest columns by standard IDataReader interface
+			for (int i = 0; i < rdr.FieldCount; i++) {
+				var colName = rdr.GetName(i);
+				var colType = rdr.GetFieldType(i);
+				if (!tbl.Columns.Contains(colName)) {
+					tbl.Columns.Add(colName, colType);
+				}
+			}
+
+		}
+#endif
+
 		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(IDictionary data) {
 			if (data == null)
 				yield break;

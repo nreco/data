@@ -75,6 +75,11 @@ namespace NReco.Data.Tests {
 			var companies = DbAdapter.Select(new Query("companies").OrderBy("id")).ToList<CompanyModelAnnotated>();
 			Assert.Equal(2, companies.Count);
 			Assert.Equal("Microsoft", companies[0].Name);
+
+			// select to datatable
+			var companiesTbl = DbAdapter.Select(new Query("companies").OrderBy("id")).ToDataTable();
+			Assert.Equal(2, companiesTbl.Rows.Count);
+			Assert.Equal("Microsoft", companiesTbl.Rows[0]["title"]);
 		}
 
 		[Fact]
@@ -86,11 +91,18 @@ namespace NReco.Data.Tests {
 				new Query("contacts_view", (QField)"score" > (QConst)4 ).OrderBy("name desc")
 			);
 			
+			// dictionary
 			var contactsWithHighDicts = await contactsWithHighScoreQuery.ToDictionaryListAsync();
 			Assert.Equal(2, contactsWithHighDicts.Count );	
 			
-			var contactsWithHightRS = await contactsWithHighScoreQuery.ToRecordSetAsync();
-			Assert.Equal(2, contactsWithHightRS.Count );											
+			// recordset
+			var contactsWithHighRS = await contactsWithHighScoreQuery.ToRecordSetAsync();
+			Assert.Equal(2, contactsWithHighRS.Count );
+
+			// datatable
+			var contactsWithHighTbl = await contactsWithHighScoreQuery.ToDataTableAsync();
+			Assert.Equal(2, contactsWithHighTbl.Rows.Count);
+			Assert.Equal(5, contactsWithHighTbl.Columns.Count);
 		}
 
 		[Fact]

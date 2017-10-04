@@ -34,12 +34,7 @@ namespace NReco.Data {
 		/// <summary>
 		/// Asynchronously returns all query results as <see cref="RecordSet"/>.
 		/// </summary>
-		Task<RecordSet> ToRecordSetAsync();
-
-		/// <summary>
-		/// Asynchronously returns all query results as <see cref="RecordSet"/>.
-		/// </summary>
-		Task<RecordSet> ToRecordSetAsync(CancellationToken cancel);
+		Task<RecordSet> ToRecordSetAsync(CancellationToken cancel = default(CancellationToken));
 
 	}
 }

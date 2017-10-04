@@ -19,33 +19,38 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+# if !NET_STANDARD1
+using System.Data;
+
 namespace NReco.Data {
 
 	/// <summary>
-	/// Represents query result that can be mapped to dictionary.
+	/// Represents query result that can be mapped to <see cref="DataTable"/>.
 	/// </summary>
-	public interface IQueryDictionaryResult {
+	/// <remarks>This interface is not available in netstandard1.5 build.</remarks>
+	public interface IQueryDataTableResult {
 
 		/// <summary>
-		/// Returns dictionary with first record values.
+		/// Returns all query results as <see cref="DataTable"/>.
 		/// </summary>
-		/// <returns>dictionary with field values or null if query returns zero records.</returns>
-		Dictionary<string, object> ToDictionary();
+		DataTable ToDataTable();
 
 		/// <summary>
-		/// Asynchronously returns dictionary with first record values.
+		/// Asynchronously returns all query results as <see cref="DataTable"/>.
 		/// </summary>
-		Task<Dictionary<string, object>> ToDictionaryAsync(CancellationToken cancel = default(CancellationToken));
+		Task<DataTable> ToDataTableAsync(CancellationToken cancel = default(CancellationToken));
 
 		/// <summary>
-		/// Returns a list of dictionaries with all query results.
+		/// Loads all query results into specified <see cref="DataTable"/>.
 		/// </summary>
-		List<Dictionary<string, object>> ToDictionaryList();
+		DataTable ToDataTable(DataTable tbl);
 
 		/// <summary>
-		/// Asynchronously a list of dictionaries with all query results.
+		/// Asynchronously loads all query results into specified <see cref="DataTable"/>.
 		/// </summary>
-		Task<List<Dictionary<string, object>>> ToDictionaryListAsync(CancellationToken cancel = default(CancellationToken));
+		Task<DataTable> ToDataTableAsync(DataTable tbl, CancellationToken cancel = default(CancellationToken));
 
 	}
 }
+
+#endif

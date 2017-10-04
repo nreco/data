@@ -28,7 +28,11 @@ namespace NReco.Data {
 		/// <summary>
 		/// Represents select query (returned by <see cref="DbDataAdapter.Select"/> method).
 		/// </summary>
-		public abstract class SelectQuery : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult {
+		public abstract class SelectQuery : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult
+#if !NET_STANDARD1
+		, IQueryDataTableResult
+#endif
+		{
 			readonly protected DbDataAdapter Adapter;
 			DataMapper DtoMapper;
 			Func<IDataReaderMapperContext, object> CustomMappingHandler = null;
@@ -51,6 +55,8 @@ namespace NReco.Data {
 			internal abstract IDbCommand GetSelectCmd();
 
 			internal virtual string FirstFieldName { get { return null; } }
+
+			internal virtual string TableName { get { return null; } }
 
 			/// <summary>
 			/// Configures custom mapping handler for POCO models.
@@ -77,15 +83,7 @@ namespace NReco.Data {
 			/// Asynchronously returns the first record from the query result. 
 			/// </summary>
 			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>() {
-				return SingleAsync<T>(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously returns the first record from the query result. 
-			/// </summary>
-			/// <returns>depending on T, single value or all fields values from the first record</returns>
-			public Task<T> SingleAsync<T>(CancellationToken cancel) {
+			public Task<T> SingleAsync<T>(CancellationToken cancel = default(CancellationToken)) {
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommandAsync(selectCmd, CommandBehavior.SingleRow,
 						(rdr, c) => 
@@ -110,14 +108,7 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously returns a list with all query results.
 			/// </summary>
-			public Task<List<T>> ToListAsync<T>() {
-				return ToListAsync<T>(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously returns a list with all query results.
-			/// </summary>
-			public Task<List<T>> ToListAsync<T>(CancellationToken cancel) {
+			public Task<List<T>> ToListAsync<T>(CancellationToken cancel = default(CancellationToken)) {
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
 						(rdr, c) => 
@@ -142,14 +133,7 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously returns dictionary with first record values.
 			/// </summary>
-			public Task<Dictionary<string,object>> ToDictionaryAsync() {
-				return ToDictionaryAsync(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously returns dictionary with first record values.
-			/// </summary>
-			public Task<Dictionary<string,object>> ToDictionaryAsync(CancellationToken cancel) {
+			public Task<Dictionary<string,object>> ToDictionaryAsync(CancellationToken cancel = default(CancellationToken)) {
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommandAsync(selectCmd, CommandBehavior.SingleRow,
 						(rdr, c) => 
@@ -169,14 +153,7 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously a list of dictionaries with all query results.
 			/// </summary>
-			public Task<List<Dictionary<string,object>>> ToDictionaryListAsync() {
-				return ToDictionaryListAsync(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously a list of dictionaries with all query results.
-			/// </summary>
-			public Task<List<Dictionary<string,object>>> ToDictionaryListAsync(CancellationToken cancel) {
+			public Task<List<Dictionary<string, object>>> ToDictionaryListAsync(CancellationToken cancel = default(CancellationToken)) {
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
 						(rdr, c) => 
@@ -200,14 +177,7 @@ namespace NReco.Data {
 			/// <summary>
 			/// Asynchronously returns all query results as <see cref="RecordSet"/>.
 			/// </summary>
-			public Task<RecordSet> ToRecordSetAsync() {
-				return ToRecordSetAsync(CancellationToken.None);
-			}
-
-			/// <summary>
-			/// Asynchronously returns all query results as <see cref="RecordSet"/>.
-			/// </summary>
-			public Task<RecordSet> ToRecordSetAsync(CancellationToken cancel) {
+			public Task<RecordSet> ToRecordSetAsync(CancellationToken cancel = default(CancellationToken)) {
 				using (var selectCmd = GetSelectCmd()) {
 					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
 						(rdr, c) => 
@@ -216,6 +186,45 @@ namespace NReco.Data {
 						cancel);
 				}				
 			}
+
+#if !NET_STANDARD1
+
+			/// <summary>
+			/// Returns all query results as <see cref="DataTable"/>.
+			/// </summary>
+			public DataTable ToDataTable() => ToDataTable(TableName!=null ? new DataTable(TableName) : null);
+
+			/// <summary>
+			/// Loads all query results into specified <see cref="DataTable"/>.
+			/// </summary>
+			public DataTable ToDataTable(DataTable tbl) {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommand(selectCmd, CommandBehavior.Default,
+						(rdr) => new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+							.SetMapper(CustomMappingHandler).ToDataTable(tbl));
+				}
+			}
+
+			/// <summary>
+			/// Loads all query results into specified <see cref="DataTable"/>.
+			/// </summary>
+			public Task<DataTable> ToDataTableAsync(CancellationToken cancel = default(CancellationToken))
+				=> ToDataTableAsync(TableName != null ? new DataTable(TableName) : null, cancel);
+
+			/// <summary>
+			/// Loads all query results into specified <see cref="DataTable"/>.
+			/// </summary>
+			public Task<DataTable> ToDataTableAsync(DataTable tbl, CancellationToken cancel = default(CancellationToken)) {
+				using (var selectCmd = GetSelectCmd()) {
+					return ExecuteCommandAsync(selectCmd, CommandBehavior.Default,
+						(rdr, c) =>
+							new DataReaderResult(rdr, DataReaderRecordOffset, RecordCount)
+								.SetMapper(CustomMappingHandler).ToDataTableAsync(tbl, c),
+						cancel);
+				}
+			}
+
+#endif
 
 			/// <summary>
 			/// Executes data reader and returns custom handler result. 
@@ -303,6 +312,12 @@ namespace NReco.Data {
 				get { 
 					return Query.Fields!=null && Query.Fields.Length>0 ? Query.Fields[0].Name : null; 
 				} 
+			}
+
+			internal override string TableName {
+				get {
+					return Query.Table.Name;
+				}
 			}
 		}
 		

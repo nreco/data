@@ -25,9 +25,13 @@ using System.Threading.Tasks;
 namespace NReco.Data {
 
 	/// <summary>
-	/// Represents <see cref="IDataReader"/> result that can be mapped to POCO model, dictionary or <see cref="RecordSet"/>.
+	/// Represents <see cref="IDataReader"/> result that can be mapped to POCO model, dictionary, <see cref="RecordSet"/> or <see cref="DataTable"/>.
 	/// </summary>
-	public class DataReaderResult : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult {
+	public class DataReaderResult : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult
+#if !NET_STANDARD1
+		, IQueryDataTableResult
+#endif		
+	{
 
 		IDataReader DataReader;
 		int RecordOffset;
@@ -197,6 +201,40 @@ namespace NReco.Data {
 			return ExecuteReaderAsync<RecordSet>(new RecordSetDataReaderResult(), RecordCount, cancel);
 		}
 
+#if !NET_STANDARD1
+
+		/// <summary>
+		/// Returns all query results as <see cref="DataTable"/>.
+		/// </summary>
+		public DataTable ToDataTable() => ToDataTable(null);
+
+		/// <summary>
+		/// Loads all query results into specified <see cref="DataTable"/>.
+		/// </summary>
+		/// <remarks>
+		/// Columns mapping is not supported; you can generate SELECT command with <see cref="DbCommandBuilder"/> and use
+		/// it with <see cref="System.Data.Common.DbDataAdapter"/> implementation if you need full support of <see cref="DataTable"/> features.
+		/// </remarks>
+		public DataTable ToDataTable(DataTable tbl) {
+			var res = new DataTableDataReaderResult(tbl ?? new DataTable());
+			ExecuteReader(res, RecordCount);
+			return res.Result;
+		}
+
+		/// <summary>
+		/// Loads all query results into specified <see cref="DataTable"/>.
+		/// </summary>
+		public Task<DataTable> ToDataTableAsync(CancellationToken cancel = default(CancellationToken))
+			=> ToDataTableAsync(null, cancel);
+
+		/// <summary>
+		/// Loads all query results into specified <see cref="DataTable"/>.
+		/// </summary>
+		public Task<DataTable> ToDataTableAsync(DataTable tbl, CancellationToken cancel = default(CancellationToken)) {
+			return ExecuteReaderAsync<DataTable>(new DataTableDataReaderResult(tbl ?? new DataTable()), RecordCount, cancel);
+		}
+
+#endif
 
 		private T ChangeType<T>(object o, TypeCode typeCode) {
 			return (T)Convert.ChangeType(o, typeCode, System.Globalization.CultureInfo.InvariantCulture);
@@ -253,6 +291,7 @@ namespace NReco.Data {
 				}
 				index++;
 			}
+			result.End();
 		}
 
 		async Task<T> ExecuteReaderAsync<T>(IDataReaderResult<T> result, int recordCount, CancellationToken cancel) {
@@ -267,6 +306,7 @@ namespace NReco.Data {
 				}
 				index++;
 			}
+			result.End();
 			return result.Result;
 		}
 

@@ -36,13 +36,7 @@ namespace NReco.Data {
 		/// Asynchronously returns the first record from the query result. 
 		/// </summary>
 		/// <returns>depending on T, single value or all fields values from the first record</returns>
-		Task<T> SingleAsync<T>();
-
-		/// <summary>
-		/// Asynchronously returns the first record from the query result. 
-		/// </summary>
-		/// <returns>depending on T, single value or all fields values from the first record</returns>
-		Task<T> SingleAsync<T>(CancellationToken cancel);
+		Task<T> SingleAsync<T>(CancellationToken cancel = default(CancellationToken));
 
 		/// <summary>
 		/// Returns a list with all query results.
@@ -53,12 +47,7 @@ namespace NReco.Data {
 		/// <summary>
 		/// Asynchronously returns a list with all query results.
 		/// </summary>
-		Task<List<T>> ToListAsync<T>();
-
-		/// <summary>
-		/// Asynchronously returns a list with all query results.
-		/// </summary>
-		Task<List<T>> ToListAsync<T>(CancellationToken cancel);
+		Task<List<T>> ToListAsync<T>(CancellationToken cancel = default(CancellationToken));
 
 	}
 }
