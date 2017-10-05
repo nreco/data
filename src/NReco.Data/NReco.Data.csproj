@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>High-performance schema-less data access library (micro-ORM): dynamic queries, SQL commands generation (command builder), relational expressions parser, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable).</Description>
-    <Copyright>Copyright (c) 2016-2017 Vitalii Fedorchenko</Copyright>
+    <Description>Fast data access library for .NET Core (micro-ORM): simple API for CRUD, dynamic queries, SQL commands generation (command builder), relational expressions parser, schema-less data access, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable). Try out NReco.Data if you're looking for Dapper alternative with abstract queries and automated SQL generation.</Description>
+    <Title>Micro-ORM with abstract queries for any ADO.NET connector.</Title>
+	<Copyright>Copyright (c) 2016-2017 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
     <VersionPrefix>1.0.4</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
@@ -10,9 +11,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>NReco.Data</AssemblyName>
     <PackageId>NReco.Data</PackageId>
-    <PackageTags>DAL;ado.net;data;relex;recordset;sql;query;generator;batch;database;micro-orm;data-mapper;poco;schema-less;netstandard;netcore;net45</PackageTags>
+    <PackageTags>DAL;ado.net;data;sql;query;generator;sql-builder;database;orm;micro-orm;data-mapper;poco;schema-less;relex;recordset;netstandard;netcore;net45</PackageTags>
     <PackageIconUrl>https://www.nrecosite.com/img/nreco-logo-200.png</PackageIconUrl>
-    <PackageProjectUrl>http://www.nrecosite.com/dalc_net.aspx</PackageProjectUrl>
+    <PackageProjectUrl>https://www.nrecosite.com/dalc_net.aspx</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/nreco/data/master/LICENSE</PackageLicenseUrl>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
