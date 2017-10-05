@@ -111,6 +111,7 @@ Query q = relexParser.Parse(relex);
 ## More examples
 * [Command Builder](https://github.com/nreco/data/tree/master/examples/SqliteDemo.CommandBuilder/Program.cs): illustrates SQL commands generation, command batching (inserts)
 * [Data Adapter](https://github.com/nreco/data/tree/master/examples/SqliteDemo.DataAdapter/Program.cs): CRUD operations with dictionaries, POCO, RecordSet
+* [DataSet GenericDataAdapter](https://github.com/nreco/data/blob/master/examples/DataSetGenericDataAdapter/Program.cs): how to implement generic DataSet DataAdapter (Fill/Update) for any ADO.NET provider 
 * [SQL logging](https://github.com/nreco/data/tree/master/examples/SqliteDemo.SqlLogging): how to extend `DbFactory` and add wrapper for `DbCommand` that logs SQL commands produced by `DbDataAdapter`
 * [DB WebApi](https://github.com/nreco/data/tree/master/examples/SqliteDemo.WebApi): configures NReco.Data services in MVC Core app, simple REST API for database tables
 * [MVC Core CRUD](https://github.com/nreco/data/tree/master/examples/SqliteDemo.MVCApplication): full-functional CRUD (list, add/edit forms) that uses NReco.Data as data layer in combination with EF Core
