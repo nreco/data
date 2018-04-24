@@ -9,7 +9,7 @@ NuGet | Windows x64 | Ubuntu 14.04
 * abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code + query can be constructed dynamically
 * automated CRUD commands generation
 * generate several SQL statements into one IDbCommand (batch inserts, updates, selects for multiple recordsets: *DbBatchCommandBuilder*)
-* mapping to annotated POCO models (EF Core entity models), custom query result mapping
+* supports mapping to annotated POCO models (EF Core entity models), allows customized query result mapping
 * API for schema-less data access (dictionaries, RecordSet, DataTable)
 * can handle results returned by stored procedure, including multiple record sets
 * application-level data views (for complex SQL queries) that accessed like simple read-only tables (DbDataView)
@@ -117,6 +117,9 @@ Query q = relexParser.Parse(relex);
 * [MVC Core CRUD](https://github.com/nreco/data/tree/master/examples/SqliteDemo.MVCApplication): full-functional CRUD (list, add/edit forms) that uses NReco.Data as data layer in combination with EF Core
 * [DB Metadata](https://github.com/nreco/data/tree/master/examples/MySqlDemo.DbMetadata): extract database metadata (list of tables, columns) with information_schema queries
 * [GraphQL API for SQL database](https://github.com/nreco/data/tree/master/examples/SqliteDemo.GraphQLApi): provides simple GraphQL API by existing database schema (simple queries only, no mutations yet)
+
+## Who is using this?
+NReco.Data is in production use at [SeekTable.com](https://www.seektable.com/) and [PivotData microservice](https://www.nrecosite.com/pivotdata_service.aspx).
 
 ## License
 Copyright 2016-2017 Vitaliy Fedorchenko and contributors
