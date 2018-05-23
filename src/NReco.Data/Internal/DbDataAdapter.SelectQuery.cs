@@ -36,15 +36,17 @@ namespace NReco.Data {
 			readonly protected DbDataAdapter Adapter;
 			DataMapper DtoMapper;
 			Func<IDataReaderMapperContext, object> CustomMappingHandler = null;
+			bool ApplyOffset;
 
 			internal SelectQuery(DbDataAdapter adapter) {
 				Adapter = adapter;
 				DtoMapper = DataMapper.Instance;
+				ApplyOffset = Adapter.ApplyOffset;
 			}
 
 			int DataReaderRecordOffset {
 				get {
-					return Adapter.ApplyOffset ? RecordOffset : 0;
+					return ApplyOffset ? RecordOffset : 0;
 				}
 			}
 
@@ -63,6 +65,15 @@ namespace NReco.Data {
 			/// </summary>
 			public SelectQuery SetMapper(Func<IDataReaderMapperContext,object> handler) {
 				CustomMappingHandler = handler;
+				return this;
+			}
+
+			/// <summary>
+			/// Sets flag that determines whether query record offset is applied during reading query results.
+			/// </summary>
+			/// <remarks>ApplyOffset = false is used when offset is applied in SQL query, and no need to skip N records while reading from DbDataReader.</remarks>
+			public SelectQuery SetApplyOffset(bool applyOffset) {
+				ApplyOffset = applyOffset;
 				return this;
 			}
 
