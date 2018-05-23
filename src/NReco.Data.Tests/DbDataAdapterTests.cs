@@ -42,6 +42,10 @@ namespace NReco.Data.Tests {
 			// count for schema-qualified query
 			Assert.Equal(5, DbAdapter.Select( new Query( new QTable( "main.contacts",null) ).Select(QField.Count) ).Single<int>() );
 
+			// select single that is null
+			Assert.False( DbAdapter.Select( new Query("companies", (QField)"id">(QConst)1000).Select(new QField("sum", "sum(size)")) ).Single<int?>().HasValue );
+			Assert.Equal(0, DbAdapter.Select(new Query("companies", (QField)"id" > (QConst)1000).Select(new QField("sum", "sum(size)"))).Single<int>() );
+
 			// count: data view
 			Assert.Equal(5, DbAdapter.Select(new Query("contacts_view").Select(QField.Count) ).Single<int>() );
 

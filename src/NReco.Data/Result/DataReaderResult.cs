@@ -237,6 +237,9 @@ namespace NReco.Data {
 #endif
 
 		private T ChangeType<T>(object o, TypeCode typeCode) {
+			if (DataHelper.IsNullOrDBNull(o)) {
+				return default(T);
+			}
 			return (T)Convert.ChangeType(o, typeCode, System.Globalization.CultureInfo.InvariantCulture);
 		}
 
@@ -248,7 +251,8 @@ namespace NReco.Data {
 		}
 
 		private T Read<T>(IDataReader rdr) {
-			var typeCode = Type.GetTypeCode(typeof(T));
+			var undelyingType = Nullable.GetUnderlyingType(typeof(T));
+			var typeCode = Type.GetTypeCode(undelyingType ?? typeof(T));
 			// handle primitive single-value result
 			if (typeCode!=TypeCode.Object || typeof(T)==typeof(object)) {
 				if (rdr.FieldCount==1) {
