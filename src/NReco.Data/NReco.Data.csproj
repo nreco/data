@@ -3,9 +3,9 @@
   <PropertyGroup>
     <Description>Fast data access library for .NET Core (micro-ORM): simple API for CRUD, dynamic queries, SQL commands generation (command builder), relational expressions parser, schema-less data access, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable). Try out NReco.Data if you're looking for Dapper alternative with abstract queries and automated SQL generation.</Description>
     <Title>Micro-ORM with abstract queries for any ADO.NET connector.</Title>
-	<Copyright>Copyright (c) 2016-2017 Vitalii Fedorchenko</Copyright>
+	<Copyright>Copyright (c) 2016-2018 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.0.4</VersionPrefix>
+    <VersionPrefix>1.0.5</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
     <TargetFrameworks>netstandard2.0;net45;netstandard1.5</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
