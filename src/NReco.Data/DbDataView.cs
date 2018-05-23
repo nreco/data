@@ -77,7 +77,7 @@ namespace NReco.Data {
 					case "where": return new StringTemplate.TokenResult( whereExpression );
 					case "orderby": return isCount ? StringTemplate.TokenResult.NotApplicable : new StringTemplate.TokenResult( orderBy );
 					case "columns": return new StringTemplate.TokenResult( columns );
-					case "recordoffset": return new StringTemplate.TokenResult( query.RecordOffset );
+					case "recordoffset": return query.RecordOffset > 0 ? new StringTemplate.TokenResult( query.RecordOffset ) : StringTemplate.TokenResult.NotDefined;
 					case "recordcount": return query.RecordCount<Int32.MaxValue ? new StringTemplate.TokenResult( query.RecordCount ) : StringTemplate.TokenResult.NotDefined;
 					case "recordtop": return query.RecordCount<Int32.MaxValue ? new StringTemplate.TokenResult( query.RecordOffset+query.RecordCount ) : StringTemplate.TokenResult.NotDefined;
 				}
