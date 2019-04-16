@@ -103,14 +103,22 @@ namespace NReco.Data
 				return new QConditionNode(lvalue, Conditions.Null, null);
 			}
 			return new QConditionNode( lvalue, Conditions.Equal, rvalue );
-		}		
+		}
 
 		public static QConditionNode operator !=(QField lvalue, IQueryValue rvalue) {
 			if (rvalue == null || ((rvalue is QConst && !(rvalue is QVar)) && DataHelper.IsNullOrDBNull( ((QConst)rvalue).Value ) )) {
 				return new QConditionNode(lvalue, Conditions.Null|Conditions.Not, null);
 			}
 			return new QConditionNode( lvalue, Conditions.Equal|Conditions.Not, rvalue );
-		}		
+		}
+
+		public static QConditionNode operator ==(QField lvalue, DBNull dbNull) {
+			return new QConditionNode(lvalue, Conditions.Null, null);
+		}
+
+		public static QConditionNode operator !=(QField lvalue, DBNull dbNull) {
+			return new QConditionNode(lvalue, Conditions.Null | Conditions.Not, null);
+		}
 
 		public static QConditionNode operator <(QField lvalue, IQueryValue rvalue) {
 			return new QConditionNode( lvalue, Conditions.LessThan, rvalue );

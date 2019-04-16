@@ -203,9 +203,11 @@ namespace NReco.Data.Tests {
 				// insert
 				var newCompany = new CompanyModelAnnotated();
 				newCompany.Id = 5000; // should be ignored
-				newCompany.Name = "Test Super Corp";
+				newCompany.Name = null;
 				DbAdapter.Insert(newCompany);
 				Assert.True(newCompany.Id.HasValue && newCompany.Id.Value != 5000);
+
+				Assert.Equal(1, DbAdapter.Select(new Query("companies", (QField)"title" == DBNull.Value).Select(QField.Count)).Single<int>());
 
 				tr.Rollback(); // do not save
 			});
