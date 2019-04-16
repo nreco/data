@@ -172,7 +172,7 @@ namespace NReco.Data {
 				affected = InsertInternal(tableName, DataHelper.GetChangeset( pocoModel, null) );
 				var autoIncrementCol = FindAutoIncrementColumn(pocoModel);
 				if (autoIncrementCol!=null) {
-					var insertedId = CommandBuilder.DbFactory.GetInsertId(Connection);
+					var insertedId = CommandBuilder.DbFactory.GetInsertId(Connection, Transaction);
 					if (insertedId!=null)
 						autoIncrementCol.SetValue(pocoModel, insertedId);
 				}
@@ -199,7 +199,7 @@ namespace NReco.Data {
 				affected = await InsertInternalAsync(tableName, DataHelper.GetChangeset( pocoModel, null) ).ConfigureAwait(false);
 				var autoIncrementCol = FindAutoIncrementColumn(pocoModel);
 				if (autoIncrementCol!=null) {
-					var insertedId = await CommandBuilder.DbFactory.GetInsertIdAsync(Connection, cancel).ConfigureAwait(false);
+					var insertedId = await CommandBuilder.DbFactory.GetInsertIdAsync(Connection, Transaction, cancel).ConfigureAwait(false);
 					if (insertedId!=null)
 						autoIncrementCol.SetValue(pocoModel, insertedId);
 				}

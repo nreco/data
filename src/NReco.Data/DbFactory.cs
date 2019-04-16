@@ -91,7 +91,7 @@ namespace NReco.Data {
 			return IdentifierFormat!=null ? String.Format(IdentifierFormat, name) : name;
 		}
 
-		public virtual object GetInsertId(IDbConnection connection) {
+		public virtual object GetInsertId(IDbConnection connection, IDbTransaction transaction) {
 			if (String.IsNullOrEmpty(LastInsertIdSelectText)) {
 				return null;
 			}
@@ -100,11 +100,12 @@ namespace NReco.Data {
 			using (var cmd = CreateCommand()) {
 				cmd.CommandText = LastInsertIdSelectText;
 				cmd.Connection = connection;
+				cmd.Transaction = transaction;
 				return cmd.ExecuteScalar();
 			}
 		}
 
-		public async Task<object> GetInsertIdAsync(IDbConnection connection, CancellationToken cancel) {
+		public async Task<object> GetInsertIdAsync(IDbConnection connection, IDbTransaction transaction, CancellationToken cancel) {
 			if (String.IsNullOrEmpty(LastInsertIdSelectText)) {
 				return null;
 			}
@@ -113,6 +114,7 @@ namespace NReco.Data {
 			using (var cmd = CreateCommand()) {
 				cmd.CommandText = LastInsertIdSelectText;
 				cmd.Connection = connection;
+				cmd.Transaction = transaction;
 				return await cmd.ExecuteScalarAsync(cancel);
 			}
 		}

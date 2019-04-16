@@ -91,7 +91,7 @@ namespace NReco.Data {
 			PrepareInsertCmd(row);
 			var affected = InsertCmd.ExecuteNonQuery();
 			if (autoIncrementCol!=null) {
-				row[autoIncrementCol.Name] = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection);
+				row[autoIncrementCol.Name] = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection, DbAdapter.Transaction);
 			}
 			return affected;
 		}
@@ -100,7 +100,7 @@ namespace NReco.Data {
 			PrepareInsertCmd(row);
 			var affected = await InsertCmd.ExecuteNonQueryAsync(cancel).ConfigureAwait(false);
 			if (autoIncrementCol!=null) {
-				row[autoIncrementCol.Name] = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection);
+				row[autoIncrementCol.Name] = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection, DbAdapter.Transaction);
 			}
 			return affected;
 		}

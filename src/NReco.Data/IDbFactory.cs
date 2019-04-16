@@ -50,12 +50,12 @@ namespace NReco.Data
 		/// <summary>
 		/// Gets ID of last inserted record
 		/// </summary>
-		object GetInsertId(IDbConnection connection);
+		object GetInsertId(IDbConnection connection, IDbTransaction transaction);
 
 		/// <summary>
 		/// Asynchronously gets ID of last inserted record
 		/// </summary>
-		Task<object> GetInsertIdAsync(IDbConnection connection, CancellationToken cancel);
+		Task<object> GetInsertIdAsync(IDbConnection connection, IDbTransaction transaction, CancellationToken cancel);
 	}
 
 	public sealed class CommandParameter {

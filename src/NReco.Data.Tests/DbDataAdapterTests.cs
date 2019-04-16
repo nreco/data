@@ -166,7 +166,7 @@ namespace NReco.Data.Tests {
 						{"country", "Norway"},
 						{"logo_image", null}
 					}) );				
-				recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection); 
+				recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection, DbAdapter.Transaction); 
 			} );
 			// update - schema qualified
 			Assert.Equal(1, 
@@ -194,6 +194,23 @@ namespace NReco.Data.Tests {
 			Assert.Equal(0, DbAdapter.Delete( new Query( new QTable("main.companies",null), (QField)"country"==(QConst)"bla" ) ) );
 		}
 
+		// test for issue #48
+		[Fact]
+		public async Task Insert_InTransaction() {
+			SqliteDb.OpenConnection(() => {
+				var tr = SqliteDb.DbConnection.BeginTransaction();
+				DbAdapter.Transaction = tr;
+				// insert
+				var newCompany = new CompanyModelAnnotated();
+				newCompany.Id = 5000; // should be ignored
+				newCompany.Name = "Test Super Corp";
+				DbAdapter.Insert(newCompany);
+				Assert.True(newCompany.Id.HasValue && newCompany.Id.Value != 5000);
+
+				tr.Rollback(); // do not save
+			});
+		}
+
 		[Fact]
 		public async Task InsertUpdateDelete_DictionaryAsync() {
 			// insert
@@ -203,7 +220,7 @@ namespace NReco.Data.Tests {
 					{"title", "Test Inc"},
 					{"country", "Norway"}
 				}).ConfigureAwait(false) );				
-			object recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection); 
+			object recordId = DbAdapter.CommandBuilder.DbFactory.GetInsertId(DbAdapter.Connection, DbAdapter.Transaction); 
 			DbAdapter.Connection.Close();
 
 			// update
