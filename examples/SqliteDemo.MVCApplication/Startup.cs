@@ -102,7 +102,6 @@ namespace SqliteDemo.MVCApplication
             loggerFactory.AddDebug();
 
             app.UseDeveloperExceptionPage();
-            app.UseBrowserLink();
 
             app.UseStaticFiles();
 

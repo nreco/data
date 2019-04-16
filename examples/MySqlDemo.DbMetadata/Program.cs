@@ -26,10 +26,10 @@ namespace MySqlDemo.DbMetadata {
 		protected static DbDataAdapter dbAdapter {
 			get {
 				if (_dbAdapter == null) {
-					var sqlDbPath = "Server=useastdb.ensembl.org;Port=3306;Database=ailuropoda_melanoleuca_otherfeatures_86_1;Uid=anonymous;";
+					var sqlDbPath = "Server=db4free.net;Database=nreco_sampledb;Uid=nreco_sampledb;Pwd=HRt5UbVD;";
 
 					var dbFactory = new DbFactory(MySqlClientFactory.Instance) {
-						LastInsertIdSelectText = "SELECT last_insert_rowid()"
+						LastInsertIdSelectText = "SELECT LAST_INSERT_ID()"
 					};
 					var dbConnection = dbFactory.CreateConnection();
 					dbConnection.ConnectionString = sqlDbPath;
@@ -43,12 +43,12 @@ namespace MySqlDemo.DbMetadata {
 
 		public static void Main(string[] args) {
 
-			Console.WriteLine("Fetch 'transcript table' columns (database 'ailuropoda_melanoleuca_otherfeatures_86_1'):");
-			var customerTable = FetchTableMetaData("transcript");
-			Console.Write("Table added: {0}", customerTable.CreateTime);
+			Console.WriteLine("Fetch 'orders' table columns (database 'nreco_sampledb', may respond slowly):");
+			var tbl = FetchTableMetaData("orders");
+			Console.Write("Table added: {0}", tbl.CreateTime);
 			Console.WriteLine();
 			Console.WriteLine();
-			foreach (var col in customerTable.Columns) {
+			foreach (var col in tbl.Columns) {
 				Console.WriteLine("Column name: {0}; Data type: {1}; IsNullable: {2}", col.ColumnName, col.DataType, col.IsNullable);
 			}
 			Console.WriteLine("Press any key to continue...");

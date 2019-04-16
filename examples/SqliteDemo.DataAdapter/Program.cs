@@ -146,10 +146,10 @@ namespace SqliteDemo.DataAdapter
 					row["Country"] = "North America";
 					updateRows++;
 				}
-			// lets delete customers from Venezuela
+			// lets delete some customer
 			var deleteRows = 0;
 			foreach (var row in customersRS)
-				if ("Venezuela".Equals(row["Country"])) {
+				if ("PARIS".Equals(row["CustomerID"])) {
 					row.Delete();
 					deleteRows++;
 				}

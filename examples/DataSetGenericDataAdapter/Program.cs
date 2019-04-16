@@ -71,7 +71,7 @@ namespace DataSetGenericDataAdapter
 			};
 			var dbCmdBuilder = new NReco.Data.DbCommandBuilder(dbFactory);
 
-			var mysqlConnStr = "Server=db4free.net;Database=nreco_sampledb;Uid=nreco;Pwd=HRt5UbVD;";
+			var mysqlConnStr = "Server=db4free.net;Database=nreco_sampledb;Uid=nreco_sampledb;Pwd=HRt5UbVD;";
 			using (var conn = dbFactory.CreateConnection()) {
 				conn.ConnectionString = mysqlConnStr;
 
