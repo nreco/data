@@ -3,18 +3,41 @@
   <PropertyGroup>
     <Description>Fast data access library for .NET Core (micro-ORM): simple API for CRUD, dynamic queries, SQL commands generation (command builder), relational expressions parser, schema-less data access, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable). Try out NReco.Data if you're looking for Dapper alternative with abstract queries and automated SQL generation.</Description>
     <Title>Micro-ORM with abstract queries for any ADO.NET connector.</Title>
-	<Copyright>Copyright (c) 2016-2018 Vitalii Fedorchenko</Copyright>
+	<Copyright>Copyright (c) 2016-2019 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.0.5</VersionPrefix>
+    <VersionPrefix>1.0.6</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
     <TargetFrameworks>netstandard2.0;net45;netstandard1.5</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>NReco.Data</AssemblyName>
     <PackageId>NReco.Data</PackageId>
     <PackageTags>DAL;ado.net;data;sql;query;generator;sql-builder;database;orm;micro-orm;data-mapper;poco;schema-less;relex;recordset;netstandard;netcore;net45</PackageTags>
+	<PackageReleaseNotes>Source code and examples: https://github.com/nreco/data
+API reference: https://www.nrecosite.com/doc/NReco.Data/
+
+v.1.0.6 changes:	
+- insert operation fails in case of autoincrement and transaction (issue #48) - breaking change in IDbFactory interface
+- added == and != operator overloads for DBNull (issue #49)
+	
+v.1.0.5 changes:	
+- now 'recordoffset' is not-defined when 0 (issue #44)
+- ability to specify ApplyOffset only for concrete select (issue #46)
+- add support of nullable types and handling of nulls for non-nullable in DataReaderResult.Single&lt;T&gt; (issue #47)
+	
+v.1.0.4 changes:
+- added DbDataAdapter.Select overload that accepts FormattableString (like in EF Core)
+- netstandard2.0 build
+- added DataReaderResult.ToDataTable and DbDataAdapter.SelectQuery.ToDataTable methods (net45/netstandard2.0)
+
+v.1.0.3 changes:
+- Changed DbParameter to IDbDataParameter in CommandParameter constructor
+- Added RecordSet.FromReader overload that accepts limit parameter 	
+</PackageReleaseNotes>	
     <PackageIconUrl>https://www.nrecosite.com/img/nreco-logo-200.png</PackageIconUrl>
     <PackageProjectUrl>https://www.nrecosite.com/dalc_net.aspx</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/nreco/data/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/nreco/data</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>	
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
