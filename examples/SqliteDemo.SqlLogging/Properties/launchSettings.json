@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SqliteDemo.SqlLogging": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}

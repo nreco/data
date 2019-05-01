@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DataSetGenericDataAdapter": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}
