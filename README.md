@@ -6,16 +6,16 @@ NuGet | Windows x64 | Ubuntu 14.04
 [![NuGet Release](https://img.shields.io/nuget/v/NReco.Data.svg)](https://www.nuget.org/packages/NReco.Data/) | [![AppVeyor](https://img.shields.io/appveyor/ci/nreco/data/master.svg)](https://ci.appveyor.com/project/nreco/data) | [![Travis CI](https://img.shields.io/travis/nreco/data/master.svg)](https://travis-ci.org/nreco/data) 
 
 * very fast: NReco.Data shows almost the same performance as Dapper but offers more features
-* abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code + query can be constructed dynamically
+* abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code + query can be constructed dynamically (in the run-time)
 * automated CRUD commands generation
 * generate several SQL statements into one IDbCommand (batch inserts, updates, selects for multiple recordsets: *DbBatchCommandBuilder*)
-* supports mapping to annotated POCO models (EF Core entity models), allows customized query result mapping
+* supports mapping to annotated POCO models (EF Core entity models), allows customized mapping of query result 
 * API for schema-less data access (dictionaries, RecordSet, DataTable)
 * can handle results returned by stored procedure, including multiple record sets
 * application-level data views (for complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * parser for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
 * can be used with any existing ADO.NET data provider (SQL Server, PostgreSql, Sqlite, MySql etc)
-* supports .NET Framework 4.5+, .NET Core 1 (netstandard1.5), .NET Core 2 (netstandard2.0)
+* supports .NET Framework 4.5+, .NET Core 2.x / 3.x (netstandard2.0)
 
 ## Quick reference
 Class | Dependencies | Purpose
