@@ -15,13 +15,8 @@
 using System;
 using System.Collections.Generic;
 
-#if !NET_STANDARD
-using System.Runtime.Serialization;
-#endif
-
 namespace NReco.Data {
 	
-	//[Serializable]
 	public class QRawSqlNode : QNode {
 
 		/// <summary>

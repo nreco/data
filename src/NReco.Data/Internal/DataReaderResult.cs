@@ -86,8 +86,6 @@ namespace NReco.Data {
 		}				
 	}
 
-#if !NET_STANDARD1
-
 	internal class DataTableDataReaderResult : IDataReaderResult<DataTable> {
 
 		public DataTable Result { get; private set; }
@@ -125,8 +123,5 @@ namespace NReco.Data {
 			Result.EndLoadData();
 		}
 	}
-
-
-#endif
 
 }

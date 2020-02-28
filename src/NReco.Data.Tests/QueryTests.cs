@@ -1,5 +1,5 @@
 using System;
-
+using System.ComponentModel;
 using Xunit;
 using NReco.Data;
 

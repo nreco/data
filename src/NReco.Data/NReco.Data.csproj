@@ -3,17 +3,21 @@
   <PropertyGroup>
     <Description>Fast data access library for .NET Core (micro-ORM): simple API for CRUD, dynamic queries, SQL commands generation (command builder), relational expressions parser, schema-less data access, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable). Try out NReco.Data if you're looking for Dapper alternative with abstract queries and automated SQL generation.</Description>
     <Title>Micro-ORM with abstract queries for any ADO.NET connector.</Title>
-	<Copyright>Copyright (c) 2016-2019 Vitalii Fedorchenko</Copyright>
+	<Copyright>Copyright (c) 2016-2020 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.0.6</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
-    <TargetFrameworks>netstandard2.0;net45;netstandard1.5</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>NReco.Data</AssemblyName>
     <PackageId>NReco.Data</PackageId>
     <PackageTags>DAL;ado.net;data;sql;query;generator;sql-builder;database;orm;micro-orm;data-mapper;poco;schema-less;relex;recordset;netstandard;netcore;net45</PackageTags>
 	<PackageReleaseNotes>Source code and examples: https://github.com/nreco/data
 API reference: https://www.nrecosite.com/doc/NReco.Data/
+
+v.1.1.0 changes:
+- implemented RecordSetReader.GetSchemaTable for netcore3 compatibility #53
+- BREAKING CHANGE: System.ComponentModel.ListSortDirection used in netstandard20 instead of NReco.Data.ListSortDirection
 
 v.1.0.6 changes:	
 - insert operation fails in case of autoincrement and transaction (issue #48) - breaking change in IDbFactory interface
@@ -48,6 +52,8 @@ v.1.0.3 changes:
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>NReco.Data.snk</AssemblyOriginatorKeyFile>	
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
@@ -55,23 +61,10 @@ v.1.0.3 changes:
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System" />
   </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
-    <DefineConstants>$(DefineConstants);NET_STANDARD;NET_STANDARD1</DefineConstants>
-  </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NET_STANDARD;NET_STANDARD2</DefineConstants>
   </PropertyGroup>  
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
-    <PackageReference Include="System.Data.Common" Version="4.1.0" />
-    <PackageReference Include="System.Reflection" Version="4.1.0" />
-    <PackageReference Include="System.Reflection.Primitives" Version="4.0.1" />
-    <PackageReference Include="System.Threading" Version="4.0.11" />
-    <PackageReference Include="System.Threading.Tasks" Version="4.0.11" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.1.0" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' "> 
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.0" />

@@ -103,7 +103,6 @@ namespace NReco.Data {
 			return rs;
 		}
 
-#if !NET_STANDARD1
 		internal static void EnsureDataTableColumnsByReader(DataTable tbl, IDataReader rdr) {
 			#if NET_STANDARD
 			// lets populate data schema
@@ -143,7 +142,6 @@ namespace NReco.Data {
 			}
 
 		}
-#endif
 
 		internal static IEnumerable<KeyValuePair<string, IQueryValue>> GetChangeset(IDictionary data) {
 			if (data == null)

@@ -15,17 +15,12 @@
 using System;
 using System.Collections.Generic;
 
-#if !NET_STANDARD
-using System.Runtime.Serialization;
-#endif
-
 namespace NReco.Data
 {
 	
 	/// <summary>
 	/// Represents group of nodes combined with logical OR/AND operator
 	/// </summary>
-	//[Serializable]
 	public class QGroupNode : QNode {
 		
 		private List<QNode> _Nodes;

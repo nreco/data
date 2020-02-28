@@ -15,16 +15,11 @@
 using System;
 using System.Collections.Generic;
 
-#if !NET_STANDARD
-using System.Runtime.Serialization;
-#endif
-
 namespace NReco.Data {
 	
 	/// <summary>
 	/// Represents logical negation operator
 	/// </summary>
-	//[Serializable]
 	public class QNegationNode : QNode {
 		
 		private QNode[] SingleNodeList;

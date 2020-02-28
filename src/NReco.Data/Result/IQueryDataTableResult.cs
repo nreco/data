@@ -19,7 +19,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-# if !NET_STANDARD1
 using System.Data;
 
 namespace NReco.Data {
@@ -52,5 +51,3 @@ namespace NReco.Data {
 
 	}
 }
-
-#endif

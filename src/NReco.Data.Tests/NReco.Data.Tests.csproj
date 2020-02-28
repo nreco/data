@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>NReco.Data.Tests</AssemblyName>
     <PackageId>NReco.Data.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -23,10 +23,6 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="2.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.0" />
   </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <DebugType>portable</DebugType>
-  </PropertyGroup>
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>

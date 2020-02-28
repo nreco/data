@@ -28,10 +28,7 @@ namespace NReco.Data {
 		/// <summary>
 		/// Represents select query (returned by <see cref="DbDataAdapter.Select"/> method).
 		/// </summary>
-		public abstract class SelectQuery : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult
-#if !NET_STANDARD1
-		, IQueryDataTableResult
-#endif
+		public abstract class SelectQuery : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult	, IQueryDataTableResult
 		{
 			readonly protected DbDataAdapter Adapter;
 			DataMapper DtoMapper;
@@ -198,8 +195,6 @@ namespace NReco.Data {
 				}				
 			}
 
-#if !NET_STANDARD1
-
 			/// <summary>
 			/// Returns all query results as <see cref="DataTable"/>.
 			/// </summary>
@@ -234,8 +229,6 @@ namespace NReco.Data {
 						cancel);
 				}
 			}
-
-#endif
 
 			/// <summary>
 			/// Executes data reader and returns custom handler result. 

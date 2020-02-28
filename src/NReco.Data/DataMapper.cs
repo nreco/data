@@ -117,7 +117,7 @@ namespace NReco.Data {
 				
 				if (DataHelper.IsNullOrDBNull(fieldValue)) {
 					fieldValue = null;
-					if (Nullable.GetUnderlyingType(colMapping.ValueType) == null && colMapping.ValueType._IsValueType() )
+					if (Nullable.GetUnderlyingType(colMapping.ValueType) == null && colMapping.ValueType.IsValueType)
 						fieldValue = colMapping.DefaultValue;
 				}
 				colMapping.SetValue(o, fieldValue);
@@ -204,13 +204,13 @@ namespace NReco.Data {
 				IsKey = isKey;
 
 				DefaultValue = null;
-				if (ValueType._IsValueType())
+				if (ValueType.IsValueType)
 					DefaultValue = Activator.CreateInstance(ValueType);
 
 				ConvertToType = ValueType;
 				if (Nullable.GetUnderlyingType(ValueType) != null)
 					ConvertToType = Nullable.GetUnderlyingType(ValueType);
-				IsEnum = ConvertToType._IsEnum();
+				IsEnum = ConvertToType.IsEnum;
 
 				// compose get
 				if (canRead) {

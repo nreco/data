@@ -27,10 +27,7 @@ namespace NReco.Data {
 	/// <summary>
 	/// Represents <see cref="IDataReader"/> result that can be mapped to POCO model, dictionary, <see cref="RecordSet"/> or <see cref="DataTable"/>.
 	/// </summary>
-	public class DataReaderResult : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult
-#if !NET_STANDARD1
-		, IQueryDataTableResult
-#endif		
+	public class DataReaderResult : IQueryModelResult, IQueryDictionaryResult, IQueryRecordSetResult	, IQueryDataTableResult
 	{
 
 		IDataReader DataReader;
@@ -201,8 +198,6 @@ namespace NReco.Data {
 			return ExecuteReaderAsync<RecordSet>(new RecordSetDataReaderResult(), RecordCount, cancel);
 		}
 
-#if !NET_STANDARD1
-
 		/// <summary>
 		/// Returns all query results as <see cref="DataTable"/>.
 		/// </summary>
@@ -233,8 +228,6 @@ namespace NReco.Data {
 		public Task<DataTable> ToDataTableAsync(DataTable tbl, CancellationToken cancel = default(CancellationToken)) {
 			return ExecuteReaderAsync<DataTable>(new DataTableDataReaderResult(tbl ?? new DataTable()), RecordCount, cancel);
 		}
-
-#endif
 
 		private T ChangeType<T>(object o, TypeCode typeCode) {
 			if (DataHelper.IsNullOrDBNull(o)) {
