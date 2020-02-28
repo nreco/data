@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Data;
 
 namespace NReco.Data {
 	
@@ -236,11 +236,89 @@ namespace NReco.Data {
 			return true;
 		}
 
-		#if !NET_STANDARD1
-		public override System.Data.DataTable GetSchemaTable() {
-			throw new NotImplementedException("Currently RecordSetReader does not implement GetSchemaTable. If you need it please add an issue here: https://github.com/nreco/data/issues");
+		DataTable _SchemaTable = null;
+
+		public override DataTable GetSchemaTable() {
+			return _SchemaTable ?? (_SchemaTable = BuildSchemaTable());
 		}
-		#endif
+
+		internal DataTable BuildSchemaTable() {
+			var schemaTable = new DataTable("SchemaTable");
+
+			var ColumnName = new DataColumn(SchemaTableColumn.ColumnName, typeof(string));
+			var ColumnOrdinal = new DataColumn(SchemaTableColumn.ColumnOrdinal, typeof(int));
+			var ColumnSize = new DataColumn(SchemaTableColumn.ColumnSize, typeof(int));
+			var NumericPrecision = new DataColumn(SchemaTableColumn.NumericPrecision, typeof(short));
+			var NumericScale = new DataColumn(SchemaTableColumn.NumericScale, typeof(short));
+
+			var DataType = new DataColumn(SchemaTableColumn.DataType, typeof(Type));
+			var DataTypeName = new DataColumn("DataTypeName", typeof(string));
+
+			var IsLong = new DataColumn(SchemaTableColumn.IsLong, typeof(bool));
+			var AllowDBNull = new DataColumn(SchemaTableColumn.AllowDBNull, typeof(bool));
+
+			var IsUnique = new DataColumn(SchemaTableColumn.IsUnique, typeof(bool));
+			var IsKey = new DataColumn(SchemaTableColumn.IsKey, typeof(bool));
+			var IsAutoIncrement = new DataColumn(SchemaTableOptionalColumn.IsAutoIncrement, typeof(bool));
+
+			var BaseCatalogName = new DataColumn(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
+			var BaseSchemaName = new DataColumn(SchemaTableColumn.BaseSchemaName, typeof(string));
+			var BaseTableName = new DataColumn(SchemaTableColumn.BaseTableName, typeof(string));
+			var BaseColumnName = new DataColumn(SchemaTableColumn.BaseColumnName, typeof(string));
+
+			var BaseServerName = new DataColumn(SchemaTableOptionalColumn.BaseServerName, typeof(string));
+			var IsAliased = new DataColumn(SchemaTableColumn.IsAliased, typeof(bool));
+			var IsExpression = new DataColumn(SchemaTableColumn.IsExpression, typeof(bool));
+
+			var columns = schemaTable.Columns;
+
+			columns.Add(ColumnName);
+			columns.Add(ColumnOrdinal);
+			columns.Add(ColumnSize);
+			columns.Add(NumericPrecision);
+			columns.Add(NumericScale);
+			columns.Add(IsUnique);
+			columns.Add(IsKey);
+			columns.Add(BaseServerName);
+			columns.Add(BaseCatalogName);
+			columns.Add(BaseColumnName);
+			columns.Add(BaseSchemaName);
+			columns.Add(BaseTableName);
+			columns.Add(DataType);
+			columns.Add(DataTypeName);
+			columns.Add(AllowDBNull);
+			columns.Add(IsAliased);
+			columns.Add(IsExpression);
+			columns.Add(IsAutoIncrement);
+			columns.Add(IsLong);
+
+			for (int i = 0; i < RS.Columns.Count; i++) {
+				var schemaRow = schemaTable.NewRow();
+
+				schemaRow[ColumnName] = RS.Columns[i].Name;
+				schemaRow[ColumnOrdinal] = i;
+				schemaRow[ColumnSize] = DBNull.Value;
+				schemaRow[NumericPrecision] = DBNull.Value;
+				schemaRow[NumericScale] = DBNull.Value;
+				schemaRow[BaseServerName] = DBNull.Value;
+				schemaRow[BaseCatalogName] = DBNull.Value;
+				schemaRow[BaseColumnName] = RS.Columns[i].Name;
+				schemaRow[BaseSchemaName] = DBNull.Value;
+				schemaRow[BaseTableName] = DBNull.Value;
+				schemaRow[DataType] = RS.Columns[i].DataType;
+				schemaRow[DataTypeName] = RS.Columns[i].DataType.Name;
+				schemaRow[IsAliased] = false;
+				schemaRow[IsExpression] = false;
+				schemaRow[IsLong] = DBNull.Value;
+
+				schemaRow[IsKey] = RS.PrimaryKey!=null ? Array.IndexOf( RS.PrimaryKey, RS.Columns[i])>=0 : false;
+				schemaRow[AllowDBNull] = RS.Columns[i].AllowDBNull;
+				schemaRow[IsAutoIncrement] = RS.Columns[i].AutoIncrement;
+
+				schemaTable.Rows.Add(schemaRow);
+			}
+			return schemaTable;
+		}
 
 	}
 
