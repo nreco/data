@@ -411,6 +411,13 @@ namespace NReco.Data {
 			}
 			internal RowState rowState;
 			
+			/// <summary>
+			/// Gets the <see cref="RecordSet"/> that contains this row.
+			/// </summary>
+			public RecordSet RecordSet {
+				get { return rs;  }
+			}
+
 			RecordSet rs;
 			object[] values;
 
@@ -479,7 +486,7 @@ namespace NReco.Data {
 			/// <summary>
 			/// Gets or sets the data stored in the column specified by index.
 			/// </summary>
-			/// <param name="column">column index</param>
+			/// <param name="columnIndex">column index</param>
 			/// <returns>An object that contains column value for this row.</returns>
 			public object this[int columnIndex] {
 				get {

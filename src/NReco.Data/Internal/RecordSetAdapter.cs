@@ -61,7 +61,9 @@ namespace NReco.Data {
 
 		void FillCmdParams(IDbCommand cmd, RecordSet.Row row) {
 			foreach (DbParameter p in cmd.Parameters) {
-				if (p.SourceColumn!=null) {
+				if (!String.IsNullOrEmpty(p.SourceColumn)) {
+					if (!row.RecordSet.Columns.Contains(p.SourceColumn))
+						continue;
 					var rowVal = row[p.SourceColumn];
 					if (rowVal==null) {
 						p.Value = DBNull.Value;
