@@ -119,7 +119,13 @@ namespace NReco.Data.Tests {
 							new Query("dbo.accounts.b", (QField)"a.id"!=(QField)"b.id" ) ) ) );
 			masterSQL = "SELECT * FROM accounts a WHERE a.id IN (SELECT * FROM dbo.accounts b WHERE a.id<>b.id)";
 			Assert.Equal( masterSQL, cmd.CommandText);
-			
+
+			// SELECT AGGREGATE
+			cmd = cmdGenerator.GetSelectCommand(
+					new Query("accounts", (QField)"active" == (QConst)true).Select("name", new QAggregateField("qty_sum", "sum", "qty") ));
+			masterSQL = "SELECT name,sum(qty) as qty_sum FROM accounts WHERE active=@p0 GROUP BY name";
+			Assert.Equal(masterSQL, cmd.CommandText);
+
 			var testData = new Dictionary<string,object> {
 				{"name", "Test" },
 				{"age", 20 },

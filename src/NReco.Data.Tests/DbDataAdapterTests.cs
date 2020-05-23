@@ -84,6 +84,21 @@ namespace NReco.Data.Tests {
 			var companiesTbl = DbAdapter.Select(new Query("companies").OrderBy("id")).ToDataTable();
 			Assert.Equal(2, companiesTbl.Rows.Count);
 			Assert.Equal("Microsoft", companiesTbl.Rows[0]["title"]);
+
+			// select aggregate
+			var contactsSummaryTbl = DbAdapter.Select(
+				new Query("contacts").Select(
+					QField.Count,
+					new QAggregateField("avg_score", "avg", "score"),
+					"company_id"
+				)).ToDataTable();
+
+			Assert.Equal(2, contactsSummaryTbl.Rows.Count);
+			Assert.Equal(3, contactsSummaryTbl.Columns.Count);
+			var companyOneRow = contactsSummaryTbl.Rows.Cast<DataRow>().Where(r => r["company_id"].ToString() == "1").FirstOrDefault();
+			Assert.NotNull(companyOneRow);
+			Assert.Equal(4M, Convert.ToDecimal( companyOneRow["avg_score"] ) );
+			Assert.Equal(3, Convert.ToInt32( companyOneRow["cnt"] ));
 		}
 
 		[Fact]

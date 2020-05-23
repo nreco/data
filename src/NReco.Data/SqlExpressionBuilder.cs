@@ -16,6 +16,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
 
 namespace NReco.Data
 {
@@ -142,12 +143,15 @@ namespace NReco.Data
 
 		public virtual string BuildValue(IQueryValue value) {
 			if (value==null) return null;
+
+			if (value is QAggregateField qAggrFld)
+				return BuildValue(qAggrFld);
+
+			if (value is QField qFld)
+				return BuildValue(qFld);
 			
-			if (value is QField)
-				return BuildValue( (QField)value );
-			
-			if (value is QConst)
-				return BuildValue( (QConst)value );
+			if (value is QConst qConst)
+				return BuildValue(qConst);
 			
 			if (value is QRawSql)
 				return ((QRawSql)value).SqlText;
@@ -185,7 +189,19 @@ namespace NReco.Data
 				name = BuildIdentifier(fieldValue.Prefix)+"."+name;
 			return name;
 		}
-		
+
+		protected virtual string BuildValue(QAggregateField aggrFldValue) {
+			var sb = new StringBuilder(aggrFldValue.AggregateFunction);
+			sb.Append('(');
+			for (int i = 0; i < aggrFldValue.Arguments.Length; i++) {
+				if (i > 0)
+					sb.Append(',');
+				sb.Append( BuildValue(aggrFldValue.Arguments[i]) );
+			}
+			sb.Append(')');
+			return sb.ToString();
+		}
+
 		protected virtual string BuildIdentifier(string name) {
 			return name;
 		}

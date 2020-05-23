@@ -13,13 +13,13 @@
 #endregion
 
 using System;
+using System.Text.RegularExpressions;
 
 namespace NReco.Data
 {
 	/// <summary>
 	/// Represents query field.
 	/// </summary>
-	//[Serializable]
 	public class QField : IQueryValue
 	{
 		/// <summary>
@@ -42,13 +42,15 @@ namespace NReco.Data
 		/// <summary>
 		/// Initializes a new instance of QField with specified field name
 		/// </summary>
-		/// <remarks>If field name contains expression specific characters (like '(',')','*') it is treated as calculated field expression</remarks>
+		/// <remarks>If field name contains expression-specific chars ('(', ')','+','-','*','/') it is treated as a calculated field expression</remarks>
 		/// <param name="fld">field name</param>
 		public QField(string fld) {
 			if (fld.IndexOfAny(ExpressionChars) >= 0) {
 				Expression = fld;
+				SetNameByExpression();
+			} else {
+				SetName(fld);
 			}
-			SetName(fld);
 		}
 
 		/// <summary>
@@ -71,6 +73,20 @@ namespace NReco.Data
 			Prefix = prefix;
 			Name = fld;
 			Expression = expression;
+		}
+
+		static Regex AsFieldNameRegex = new Regex(@"\s*[a-z][a-zA-Z0-9_]*\s*$", RegexOptions.Compiled | RegexOptions.Singleline);
+
+		private void SetNameByExpression() {
+			Name = Expression;
+			var asIdx = Expression.LastIndexOf(" as ");
+			if (asIdx>0) {
+				var tail = Expression.Substring(asIdx + 4);
+				if (AsFieldNameRegex.IsMatch(tail)) {
+					Name = tail.Trim();
+					Expression = Expression.Substring(0, asIdx);
+				}
+			}
 		}
 
 		private void SetName(string nameStr) {

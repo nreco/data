@@ -66,6 +66,7 @@ namespace NReco.Data {
 		public virtual string FormatSelectSql(Query query, ISqlExpressionBuilder sqlBuilder, bool isSubquery) {
 			var isCount = IsCountQuery(query);
 			string columns = BuildSelectColumns(query, sqlBuilder);
+			string groupBy = BuildGroupBy(query, sqlBuilder);
 			string orderBy = BuildOrderBy(query, sqlBuilder);
 			string whereExpression = BuildWhere(query, sqlBuilder);
 			var tblName = sqlBuilder.BuildTableName(query.Table);
@@ -75,6 +76,7 @@ namespace NReco.Data {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult( tblName );
 					case "where": return new StringTemplate.TokenResult( whereExpression );
+					case "groupby": return groupBy == null ? StringTemplate.TokenResult.NotDefined : new StringTemplate.TokenResult( groupBy );
 					case "orderby": return isCount ? StringTemplate.TokenResult.NotApplicable : new StringTemplate.TokenResult( orderBy );
 					case "columns": return new StringTemplate.TokenResult( columns );
 					case "recordoffset": return query.RecordOffset > 0 ? new StringTemplate.TokenResult( query.RecordOffset ) : StringTemplate.TokenResult.NotDefined;
@@ -147,6 +149,32 @@ namespace NReco.Data {
 				columns.Append(fld);
 			}
 			return columns.ToString();
+		}
+
+		string BuildGroupBy(Query query, ISqlExpressionBuilder sqlBuilder) {
+			if (query.Fields == null || query.Fields.Length == 0 || !query.Fields.Any(isAggregateField))
+				return null;
+			var groupByCols = new StringBuilder();
+			foreach (var qField in query.Fields)
+				if (!isAggregateField(qField)) {
+					var f = qField;
+					if (FieldMapping != null && FieldMapping.ContainsKey(f.Name))
+						f = new QField(f.Name, FieldMapping[f.Name]);
+
+					if (groupByCols.Length > 0)
+						groupByCols.Append(',');
+					groupByCols.Append(sqlBuilder.BuildValue((IQueryValue)f));
+				}
+			return groupByCols.Length>0 ? groupByCols.ToString() : null;
+
+			bool isAggregateField(QField fld) {
+				if (fld is QAggregateField)
+					return true;
+				// special handling for count(*)
+				if (fld.Expression != null && fld.Expression.ToLower() == QField.Count.Expression)
+					return true;
+				return false;
+			}
 		}
 
 		bool IsCountQuery(Query q) {

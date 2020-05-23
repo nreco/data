@@ -6,7 +6,7 @@ NuGet | Windows x64 | Ubuntu 14.04
 [![NuGet Release](https://img.shields.io/nuget/v/NReco.Data.svg)](https://www.nuget.org/packages/NReco.Data/) | [![AppVeyor](https://img.shields.io/appveyor/ci/nreco/data/master.svg)](https://ci.appveyor.com/project/nreco/data) | [![Travis CI](https://img.shields.io/travis/nreco/data/master.svg)](https://travis-ci.org/nreco/data) 
 
 * very fast: NReco.Data shows almost the same performance as Dapper but offers more features
-* abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code + query can be constructed dynamically (in the run-time)
+* abstract DB-independent [Query structure](https://github.com/nreco/data/wiki/Query): no need to compose raw SQL in the code + query can be constructed dynamically (at run-time)
 * automated CRUD commands generation
 * generate several SQL statements into one IDbCommand (batch inserts, updates, selects for multiple recordsets: *DbBatchCommandBuilder*)
 * supports mapping to annotated POCO models (EF Core entity models), allows customized mapping of query result 
@@ -14,7 +14,7 @@ NuGet | Windows x64 | Ubuntu 14.04
 * can handle results returned by stored procedure, including multiple record sets
 * application-level data views (for complex SQL queries) that accessed like simple read-only tables (DbDataView)
 * parser for compact string query representation: [relex](https://github.com/nreco/data/wiki/Relex) expressions
-* can be used with any existing ADO.NET data provider (SQL Server, PostgreSql, Sqlite, MySql etc)
+* can be used with any existing ADO.NET data provider (SQL Server, PostgreSql, Sqlite, MySql, Oracle etc)
 * supports .NET Framework 4.5+, .NET Core 2.x / 3.x (netstandard2.0)
 
 ## Quick reference
@@ -62,6 +62,8 @@ var dbFactory = new DbFactory(Microsoft.Data.Sqlite.SqliteFactory.Instance) {
 var dbCmdBuilder = new DbCommandBuilder(dbFactory);
 var selectCmd = dbCmdBuilder.GetSelectCommand( 
 	new Query("Employees", (QField)"BirthDate" > new QConst(new DateTime(1960,1,1)) ) );
+var selectGroupByCmd = dbCmdBuilder.GetSelectCommand( 
+	new Query("Employees").Select("company_id", new QAggregateField("avg_age", "AVG", "age") ) );
 var insertCmd = dbCmdBuilder.GetInsertCommand(
 	"Employees", new { Name = "John Smith", BirthDate = new DateTime(1980,1,1) } );
 var deleteCmd = dbCmdBuilder.GetDeleteCommand(

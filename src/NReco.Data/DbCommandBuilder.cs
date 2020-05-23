@@ -52,16 +52,16 @@ namespace NReco.Data
 		/// <code>
 		/// // MS SQL TOP syntax
 		/// DbCommandBuilder cmdBuilder;
-		/// cmdBuilder = "SELECT @recordtop[TOP {0}] @columns FROM @table@where[ WHERE {0}]@orderby[ ORDER BY {0}]";
+		/// cmdBuilder = "SELECT @recordtop[TOP {0}] @columns FROM @table @where[ WHERE {0}] @groupby[ GROUP BY {0}] @orderby[ ORDER BY {0}]";
 		/// </code>
 		/// <code>
 		/// // PostgreSql LIMIT and OFFSET syntax
 		/// DbCommandBuilder cmdBuilder;
-		/// cmdBuilder = "SELECT @columns FROM @table@where[ WHERE {0}]@orderby[ ORDER BY {0}] @recordcount[LIMIT {0}] @recordoffset[OFFSET {0}]";
+		/// cmdBuilder = "SELECT @columns FROM @table @where[ WHERE {0}] @groupby[ GROUP BY {0}] @orderby[ ORDER BY {0}] @recordcount[LIMIT {0}] @recordoffset[OFFSET {0}]";
 		/// </code>
 		/// Note that if offset is applied on DB level and <see cref="DbDataAdapter.ApplyOffset"/> should be false. 
 		/// </remarks>
-		public string SelectTemplate { get; set; } = "SELECT @columns FROM @table@where[ WHERE {0}]@orderby[ ORDER BY {0}]";
+		public string SelectTemplate { get; set; } = "SELECT @columns FROM @table@where[ WHERE {0}]@groupby[ GROUP BY {0}]@orderby[ ORDER BY {0}]";
 
 		/// <summary>
 		/// Gets or sets template for SQL UPDATE query.
