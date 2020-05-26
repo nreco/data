@@ -13,9 +13,9 @@ namespace SqliteDemo.WebApi
 {
     public class Startup
     {
-		IHostingEnvironment HostingEnv;
+        IWebHostEnvironment HostingEnv;
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
 			HostingEnv = env;
             var builder = new ConfigurationBuilder()
@@ -32,8 +32,19 @@ namespace SqliteDemo.WebApi
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(loggingBuilder => {
+                var loggingSection = Configuration.GetSection("Logging");
+                loggingBuilder.AddConfiguration(loggingSection);
+                loggingBuilder.AddConsole();
+            });
 
-            services.AddMvc();
+            services.AddMvc(options => {
+                options.EnableEndpointRouting = false;
+            }).AddNewtonsoftJson(options => {
+                options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter { CamelCaseText = false });
+            });
 
 			// add NReco.Data services
 			var sqliteDbPath = Path.Combine( HostingEnv.ContentRootPath, "northwind.db");
@@ -41,11 +52,8 @@ namespace SqliteDemo.WebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
             app.UseMvc();

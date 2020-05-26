@@ -16,6 +16,7 @@ namespace SqliteDemo.WebApi
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
+                .UseIIS()
                 .UseStartup<Startup>()
                 .Build();
 

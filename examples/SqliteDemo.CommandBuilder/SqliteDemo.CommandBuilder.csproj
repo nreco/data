@@ -1,18 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>SqliteDemo.CommandBuilder</AssemblyName>
     <OutputType>Exe</OutputType>
-    <PackageId>SqliteDemo.CommandBuilder</PackageId>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NReco.Data" Version="1.0.6" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.4" />
+    <PackageReference Include="NReco.Data" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup>  

@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "SqliteDemo.DataAdapter": {
-      "commandName": "Project",
-      "workingDirectory": "$(ProjectDir)"
-    }
-  }
-}

@@ -1,18 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>MySqlDemo.DbMetadata</AssemblyName>
     <OutputType>Exe</OutputType>
-    <PackageId>MySqlDemo.DbMetadata</PackageId>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MySqlConnector" Version="0.52.0" />
-    <PackageReference Include="NReco.Data" Version="1.0.6" />
+    <PackageReference Include="MySqlConnector" Version="0.66.0" />
+    <PackageReference Include="NReco.Data" Version="1.1.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.0" />
   </ItemGroup>
 

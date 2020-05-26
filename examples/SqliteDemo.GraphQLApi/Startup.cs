@@ -18,11 +18,15 @@ using GraphQL.Types;
 using SqliteDemo.GraphQLApi.Db.GraphQL;
 
 namespace SqliteDemo.GraphQLApi {
+
+	// Simple grapql API based on Graphql.NET + NReco.Data
+	// If you're looking for production-ready Graphql-to-SQL engine try this component:
+	// https://www.nrecosite.com/graphql_to_sql_database.aspx
 	public class Startup {
 		const string dbConnectionFile = "northwind.db";
 		protected string ApplicationPath;
 
-		public Startup(IHostingEnvironment env) {
+		public Startup(IWebHostEnvironment env) {
 			var builder = new ConfigurationBuilder()
 				.SetBasePath(env.ContentRootPath)
 				.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -39,13 +43,22 @@ namespace SqliteDemo.GraphQLApi {
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services) {
-			// let's inject NReco.Data services (based on EF DBConnection)
+			services.AddLogging(loggingBuilder => {
+				var loggingSection = Configuration.GetSection("Logging");
+				loggingBuilder.AddConfiguration(loggingSection);
+				loggingBuilder.AddConsole();
+			});
+
+			// NReco.Data services
 			InjectNRecoDataService(services);
-			//
+			
 			InjectGraphQLSchema(services);
 			services.AddScoped<IDatabaseMetadata, DatabaseMetadata>();
+			
 			// Add framework services.
-			services.AddMvc();
+			services.AddMvc(options => {
+				options.EnableEndpointRouting = false;
+			});
 		}
 
 		protected void InjectGraphQLSchema(IServiceCollection services) {
@@ -84,11 +97,8 @@ namespace SqliteDemo.GraphQLApi {
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-			loggerFactory.AddDebug();
-			//app.UseDeveloperExceptionPage();
-			//app.UseBrowserLink();
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) {
+
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
 

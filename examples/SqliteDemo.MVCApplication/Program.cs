@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace SqliteDemo.MVCApplication
 {
+    // CRUD app that uses both EF Core AND NReco.Data
     public class Program
     {
         public static void Main(string[] args)
@@ -15,6 +16,7 @@ namespace SqliteDemo.MVCApplication
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
+                .UseIIS()
                 .UseStartup<Startup>()
                 .Build();
 

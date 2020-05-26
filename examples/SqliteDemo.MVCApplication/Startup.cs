@@ -21,6 +21,7 @@ using NReco.Data;
 
 namespace SqliteDemo.MVCApplication
 {
+	// CRUD app that uses both EF Core AND NReco.Data
     public class Startup
     {
         const string dbConnectionFile = "mvcapp_database.db";
@@ -43,7 +44,13 @@ namespace SqliteDemo.MVCApplication
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var dbConnectionString = String.Format("Filename={0}", Path.Combine(ApplicationPath, dbConnectionFile));
+			services.AddLogging(loggingBuilder => {
+				var loggingSection = Configuration.GetSection("Logging");
+				loggingBuilder.AddConfiguration(loggingSection);
+				loggingBuilder.AddConsole();
+			});
+
+			var dbConnectionString = String.Format("Filename={0}", Path.Combine(ApplicationPath, dbConnectionFile));
 			// Add EF framework services.
 			services.AddDbContext<DbCoreContext>(
                 options => options.UseSqlite(
@@ -55,8 +62,10 @@ namespace SqliteDemo.MVCApplication
 			services.AddScoped<ArticleRepository>();
 
             // Add framework services.
-            services.AddMvc();
-        }
+            services.AddMvc(options => {
+				options.EnableEndpointRouting = false;
+			});
+		}
 
         protected void InjectNRecoDataService(IServiceCollection services) {
 
@@ -96,11 +105,8 @@ namespace SqliteDemo.MVCApplication
 		}
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             app.UseDeveloperExceptionPage();
 
             app.UseStaticFiles();

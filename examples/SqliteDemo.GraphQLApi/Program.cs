@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Builder;
 
 namespace SqliteDemo.GraphQLApi
 {
+    // Simple grapql API based on Graphql.NET + NReco.Data
+    // If you're looking for production-ready Graphql-to-SQL engine try this component:
+    // https://www.nrecosite.com/graphql_to_sql_database.aspx
     public class Program
     {
         public static void Main(string[] args)
@@ -16,6 +19,7 @@ namespace SqliteDemo.GraphQLApi
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
+                .UseIIS()
                 .UseStartup<Startup>()
                 .Build();
 
