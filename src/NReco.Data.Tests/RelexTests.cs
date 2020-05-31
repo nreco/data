@@ -176,12 +176,16 @@ namespace NReco.Data.Tests
 				new QConditionNode( (QField)"company_id", Conditions.In,
 					new Query("companies.c").Select("c.id") )	
 			),
-			new Query("Purchase Orders", (QField)"PO Number" == (QConst) "1111" )
+			new Query("Purchase Orders", (QField)"PO Number" == (QConst) "1111" ),
+			new Query("accounts", (QField)"id"==new QVar("id")) {
+				RecordOffset = 10
+			}
 		};
 		string[] queryToRelexResults = new [] {
 			"users(id=\"5\":Int32)[id,name]",
 			"users(company_id in companies.c[c.id])[*]",
-			"\"Purchase Orders\":table(\"PO Number\":field=\"1111\")[*]"
+			"\"Purchase Orders\":table(\"PO Number\":field=\"1111\")[*]",
+			"accounts(id=\"id\":var)[*]{10,2147483647}"
 		};
 		
 		[Fact]
