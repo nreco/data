@@ -113,7 +113,7 @@ namespace NReco.Data.Relex {
 			}
 
 			protected override string BuildValue(QConst qConst) {
-				if (qConst is QVar qVar) {
+				if (qConst is QVar qVar && !qVar.HasValue) {
 					return BuildValue(qVar.Name) + ":var";
 				}
 

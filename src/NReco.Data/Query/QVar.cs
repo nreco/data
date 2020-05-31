@@ -51,6 +51,13 @@ namespace NReco.Data
 		private bool _isDefined = false;
 
 		/// <summary>
+		/// Determines whether this variable is set (defined).
+		/// </summary>
+		public bool HasValue {
+			get { return _isDefined;  }
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the QVar with specified variable name
 		/// </summary>
 		/// <param name="varName">variable name</param>
