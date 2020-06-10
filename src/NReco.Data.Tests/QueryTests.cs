@@ -75,6 +75,11 @@ namespace NReco.Data.Tests
 			var f = new QAggregateField("amount_sum", "sum", (QField)"amount");
 			Assert.Equal("sum(amount)", f.Expression);
 			Assert.Equal("amount_sum", f.Name);
+
+			// custom sql template
+			var f1 = new QAggregateField("amount_sum", "COUNT(DISTINCT {0})", (QField)"amount");
+			Assert.Equal("COUNT(DISTINCT amount)", f1.Expression);
+			Assert.Equal("amount_sum", f1.Name);
 		}
 
 		[Fact]

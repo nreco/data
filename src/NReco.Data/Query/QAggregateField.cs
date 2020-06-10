@@ -15,6 +15,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Linq;
 
 namespace NReco.Data
 {
@@ -40,12 +41,17 @@ namespace NReco.Data
 		/// <param name="aggregateFunction">aggregate function name</param>
 		/// <param name="argFields">list of arguments for the aggregate function</param>
 		public QAggregateField(string fld, string aggregateFunction, params QField[] argFields) 
-			: base(null, fld, GetAggrExpr(aggregateFunction, argFields)) {
+			: base(null, fld, GetAggrExpr(aggregateFunction, argFields.Select(f=>f.ToString()).ToArray() ) ) {
 			AggregateFunction = aggregateFunction;
 			Arguments = argFields;
 		}
 
-		static string GetAggrExpr(string aggrFunc, QField[] args) {
+		private static char[] CustomAggrSqlChars = new[] {'(', '{' };
+
+		internal static string GetAggrExpr(string aggrFunc, string[] args) {
+			if (aggrFunc.IndexOfAny(CustomAggrSqlChars) >= 0)
+				return String.Format(aggrFunc, args);
+
 			var sb = new StringBuilder(aggrFunc);
 			sb.Append('(');
 			for (int i = 0; i < args.Length; i++) {

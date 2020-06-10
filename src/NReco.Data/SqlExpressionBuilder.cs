@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Linq;
 
 namespace NReco.Data
 {
@@ -191,15 +192,8 @@ namespace NReco.Data
 		}
 
 		protected virtual string BuildValue(QAggregateField aggrFldValue) {
-			var sb = new StringBuilder(aggrFldValue.AggregateFunction);
-			sb.Append('(');
-			for (int i = 0; i < aggrFldValue.Arguments.Length; i++) {
-				if (i > 0)
-					sb.Append(',');
-				sb.Append( BuildValue(aggrFldValue.Arguments[i]) );
-			}
-			sb.Append(')');
-			return sb.ToString();
+			return QAggregateField.GetAggrExpr(aggrFldValue.AggregateFunction, 
+				aggrFldValue.Arguments.Select(f=> BuildValue(f)).ToArray() );
 		}
 
 		protected virtual string BuildIdentifier(string name) {
