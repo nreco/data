@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 using Xunit;
+using System.Threading;
 
 namespace NReco.Data.Tests {
 
@@ -99,6 +100,32 @@ namespace NReco.Data.Tests {
 			Assert.NotNull(companyOneRow);
 			Assert.Equal(4M, Convert.ToDecimal( companyOneRow["avg_score"] ) );
 			Assert.Equal(3, Convert.ToInt32( companyOneRow["cnt"] ));
+		}
+
+		[Fact]
+		public void Select_OffsetCount() {
+			// pagination
+			var pageContactsQ = new Query("contacts") { RecordOffset = 1, RecordCount = 2 }.OrderBy("id");
+			check(DbAdapter.Select(pageContactsQ).ToRecordSet());
+			check(DbAdapter.Select(pageContactsQ).ToRecordSetAsync().GetAwaiter().GetResult());
+
+			DbAdapter.Select(pageContactsQ).ExecuteReader<bool>(rdr => {
+				var rs = RecordSet.FromReader(rdr);
+				check(rs);
+				return true;
+			});
+
+			DbAdapter.Select(pageContactsQ).ExecuteReaderAsync<bool>( (rdr,cToken) => {
+				var rs = RecordSet.FromReader(rdr);
+				check(rs);
+				return Task.FromResult(true);
+			}, CancellationToken.None).GetAwaiter().GetResult();
+
+			void check(RecordSet rs) {
+				Assert.Equal(2, rs.Count);
+				Assert.Equal("Morris Scott", rs[0]["name"]);
+				Assert.Equal("Bill Glover", rs[1]["name"]);
+			}
 		}
 
 		[Fact]

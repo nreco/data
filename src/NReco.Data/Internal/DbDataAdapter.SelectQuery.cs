@@ -235,7 +235,11 @@ namespace NReco.Data {
 			/// </summary>
 			public T ExecuteReader<T>(Func<IDataReader,T> readHandler) {
 				using (var selectCmd = GetSelectCmd()) {
-					return ExecuteCommand<T>(selectCmd, CommandBehavior.Default, readHandler);
+					return ExecuteCommand<T>(selectCmd, CommandBehavior.Default, rdr => {
+						if (DataReaderRecordOffset > 0 || RecordCount < Int32.MaxValue)
+							rdr = new OffsetCountDataReaderWrapper(rdr, DataReaderRecordOffset, RecordCount);
+						return readHandler(rdr);
+					});
 				}
 			}
 
@@ -244,7 +248,11 @@ namespace NReco.Data {
 			/// </summary>
 			public Task<T> ExecuteReaderAsync<T>(Func<IDataReader, CancellationToken, Task<T>> readHandlerAsync, CancellationToken cancel) {
 				using (var selectCmd = GetSelectCmd()) {
-					return ExecuteCommandAsync<T>(selectCmd, CommandBehavior.Default, readHandlerAsync, cancel);
+					return ExecuteCommandAsync<T>(selectCmd, CommandBehavior.Default, (rdr,cToken) => {
+						if (DataReaderRecordOffset > 0 || RecordCount < Int32.MaxValue)
+							rdr = new OffsetCountDataReaderWrapper(rdr, DataReaderRecordOffset, RecordCount);
+						return readHandlerAsync(rdr, cToken);
+					}, cancel);
 				}
 			}
 
