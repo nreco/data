@@ -71,9 +71,9 @@ namespace NReco.Data {
 			return DbPrvFactory.CreateConnection();
 		}
 
-		public CommandParameter AddCommandParameter(IDbCommand cmd, object value) {
+		public virtual CommandParameter AddCommandParameter(IDbCommand cmd, object value) {
 			var param = DbPrvFactory.CreateParameter();
-			param.ParameterName = String.Format(ParamNameFormat, cmd.Parameters.Count);
+			param.ParameterName = GetCmdParameterName(cmd.Parameters.Count);
 			param.Value = value ?? DBNull.Value;
 			cmd.Parameters.Add(param);
 			return new CommandParameter( GetCmdParameterPlaceholder(param.ParameterName), param );
@@ -117,6 +117,10 @@ namespace NReco.Data {
 				cmd.Transaction = transaction;
 				return await cmd.ExecuteScalarAsync(cancel);
 			}
+		}
+
+		protected virtual string GetCmdParameterName(int paramIndex) {
+			return String.Format(ParamNameFormat, paramIndex);
 		}
 
 		protected virtual string GetCmdParameterPlaceholder(string paramName) {
