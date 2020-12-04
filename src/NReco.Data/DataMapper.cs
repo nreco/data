@@ -98,7 +98,7 @@ namespace NReco.Data {
 					colName = colAttr.Name;
 				} else if (attr is DatabaseGeneratedAttribute) {
 					var dbGenAttr = ((DatabaseGeneratedAttribute)attr);
-					isDbGenerated = true;
+					isDbGenerated = dbGenAttr.DatabaseGeneratedOption != DatabaseGeneratedOption.None;
 					if (dbGenAttr.DatabaseGeneratedOption==DatabaseGeneratedOption.Identity)
 						isIdentity = true;
 				}

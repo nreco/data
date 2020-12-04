@@ -427,6 +427,7 @@ namespace NReco.Data.Tests {
 			public int? Id { get; set; }
 			
 			[Column("title")]
+			[DatabaseGenerated(DatabaseGeneratedOption.None)]
 			public string Name { get; set; }
 			
 			[Column("logo_image")]
