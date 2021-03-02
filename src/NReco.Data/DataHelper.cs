@@ -81,6 +81,10 @@ namespace NReco.Data {
 				if (dbRdr.CanGetColumnSchema()) {
 					foreach (var dbCol in dbRdr.GetColumnSchema()) {
 						var c = new RecordSet.Column(dbCol);
+						// if this is default implementation resolve DataType with GetFieldType
+						if (c.DataType==null) {
+							c.DataType = rdr.GetFieldType(rdr.GetOrdinal(c.Name));
+						}
 						rsCols.Add(c);
 						if (dbCol.IsKey.HasValue && dbCol.IsKey.Value)
 							rsPkCols.Add(c);
