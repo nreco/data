@@ -54,7 +54,9 @@ namespace NReco.Data.Tests
 			"users( 1=1 )[name;name desc,id asc,time]",
 			"users( \"id\":field = 5 )[*]",
 			"users( \"[user id]\":sql = 1 )[name, \"[last name]\"]",
-			"\"company users.u\":table[\"u.User ID\"]"
+			"\"company users.u\":table[\"u.User ID\"]",
+			"users( (id!=1 and id!=2) or not(id=3))[name]",
+			"users( not id=1 and id!=2 )[name]",
 		};
 
 		string[] relExCommandTexts = new string[] {
@@ -81,6 +83,8 @@ namespace NReco.Data.Tests
 			@"SELECT * FROM users WHERE id=@p0",
 			@"SELECT name,[last name] FROM users WHERE [user id]=@p0",
 			@"SELECT u.[User ID] FROM [company users] u",
+			@"SELECT name FROM users WHERE ((id<>@p0) And (id<>@p1)) Or (NOT(id=@p2))",
+			@"SELECT name FROM users WHERE (NOT(id=@p0)) And (id<>@p1)",
 	};
 		
 		[Fact]

@@ -5,7 +5,7 @@
     <Title>Micro-ORM with abstract queries and SQL generation for any ADO.NET connector.</Title>
 	<Copyright>Copyright (c) 2016-2021 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.2.5</VersionPrefix>
+    <VersionPrefix>1.2.6</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -14,6 +14,9 @@
     <PackageTags>DAL;ado.net;data;sql;query;generator;sql-builder;database;orm;micro-orm;data-mapper;poco;schema-less;relex;recordset;netstandard;netcore;net45</PackageTags>
 	<PackageReleaseNotes>Source code and examples: https://github.com/nreco/data
 API reference: https://www.nrecosite.com/doc/NReco.Data/
+
+v.1.2.6 changes:
+- Not (QNegationNode) is not supported by RelexParser #67
 
 v.1.2.5 changes:
 - RecordSet.Column.DataType is null when loaded from the DbDataReader with default "GetColumnSchema" implementation #65
@@ -37,10 +40,6 @@ v.1.2.0 changes:
 
 v.1.1.1 changes:
 - fixed issue with DbDataAdapter.Update for RecordSet when query contains parameters that are not mapped to Row columns #55
-
-v.1.1.0 changes:
-- implemented RecordSetReader.GetSchemaTable for netcore3 compatibility #53
-- BREAKING CHANGE: System.ComponentModel.ListSortDirection used in netstandard20 instead of NReco.Data.ListSortDirection
 		
 </PackageReleaseNotes>	
     <PackageIconUrl>https://www.nrecosite.com/img/nreco-logo-200.png</PackageIconUrl>

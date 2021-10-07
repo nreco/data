@@ -124,6 +124,6 @@ Query q = relexParser.Parse(relex);
 NReco.Data is in production use at [SeekTable.com](https://www.seektable.com/) and [PivotData microservice](https://www.nrecosite.com/pivotdata_service.aspx).
 
 ## License
-Copyright 2016-2020 Vitaliy Fedorchenko and contributors
+Copyright 2016-2021 Vitaliy Fedorchenko and contributors
 
 Distributed under the MIT license

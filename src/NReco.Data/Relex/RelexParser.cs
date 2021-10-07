@@ -499,7 +499,16 @@ namespace NReco.Data.Relex
 			int nextEndIdx;
 			LexemType lexemType = GetLexemType(input, startIdx, out nextEndIdx);
 			string lexem = GetLexem(input, startIdx, nextEndIdx);
-			
+
+			// handle not
+			var isNot = false;
+			if (lexemType==LexemType.Name && lexem.Equals("not", StringComparison.OrdinalIgnoreCase)) {
+				isNot = true;
+				startIdx = nextEndIdx;
+				lexemType = GetLexemType(input, startIdx, out nextEndIdx);
+				lexem = GetLexem(input, startIdx, nextEndIdx);
+			}
+
 			QNode node;
 			if (lexemType==LexemType.Delimiter && lexem=="(") {
 				string nodeName = ParseNodeName(input, nextEndIdx, out endIdx);
@@ -531,7 +540,9 @@ namespace NReco.Data.Relex
 				node = ParseCondition(input, startIdx, out nextEndIdx);
 				endIdx = nextEndIdx;
 			}
-			
+			if (isNot)
+				node = new QNegationNode(node);
+
 			// check for group
 			lexemType = GetLexemType(input, endIdx, out nextEndIdx);
 			QGroupType groupType = QGroupType.And;
