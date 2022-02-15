@@ -3,9 +3,9 @@
   <PropertyGroup>
     <Description>Fast lightweight data access library for .NET Core (micro-ORM): simple API for CRUD operations, dynamic queries, SQL commands generation (command builder), abstract queries that have simple string representation + parser, schema-less data access, flexible query results mapping to annotated POCO models, app-level data views, RecordSet structure (replacement for DataTable). Try out NReco.Data if you're looking for Dapper alternative with abstract queries and automated SQL generation.</Description>
     <Title>Micro-ORM with abstract queries and SQL generation for any ADO.NET connector.</Title>
-	<Copyright>Copyright (c) 2016-2021 Vitalii Fedorchenko</Copyright>
+	<Copyright>Copyright (c) 2016-2022 Vitalii Fedorchenko</Copyright>
     <AssemblyTitle>NReco.Data</AssemblyTitle>
-    <VersionPrefix>1.2.6</VersionPrefix>
+    <VersionPrefix>1.2.7</VersionPrefix>
     <Authors>Vitalii Fedorchenko</Authors>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -14,6 +14,9 @@
     <PackageTags>DAL;ado.net;data;sql;query;generator;sql-builder;database;orm;micro-orm;data-mapper;poco;schema-less;relex;recordset;netstandard;netcore;net45</PackageTags>
 	<PackageReleaseNotes>Source code and examples: https://github.com/nreco/data
 API reference: https://www.nrecosite.com/doc/NReco.Data/
+
+v.1.2.7 changes:
+- StringTemplate: alternative syntax for token placeholders #68
 
 v.1.2.6 changes:
 - Not (QNegationNode) is not supported by RelexParser #67
