@@ -187,15 +187,26 @@ namespace NReco.Data {
 		protected string ReadName(string s, int start, out int newStart) {
 			newStart = start;
 			// should start with letter
-			if (start >= s.Length || !Char.IsLetter(s[start]))
+			if (start >= s.Length || (!Char.IsLetter(s[start]) && s[start]!='(') )
 				return null;
-			// rest of the name: letters or digits
-			while (start < s.Length && (Char.IsLetterOrDigit(s[start]) || Array.IndexOf( ExtraNameChars, s[start])>=0 ) )
-				start++;
+			if (s[start] == '(') {
+				// rest of the name: any chars except ')'
+				while (start < s.Length && s[start]!=')')
+					start++;
+				if (start >= s.Length)
+					return null; // no closing bracket
+				var name = s.Substring(newStart + 1, start - newStart - 1);
+				newStart = start + 1; // for closing bracket
+				return name;
+			} else {
+				// rest of the name: letters or digits or '_' or '-'
+				while (start < s.Length && (Char.IsLetterOrDigit(s[start]) || Array.IndexOf(ExtraNameChars, s[start]) >= 0))
+					start++;
 
-			var name = s.Substring(newStart, start - newStart);
-			newStart = start;
-			return name;
+				var name = s.Substring(newStart, start - newStart);
+				newStart = start;
+				return name;
+			}
 		}
 
 		/// <summary>

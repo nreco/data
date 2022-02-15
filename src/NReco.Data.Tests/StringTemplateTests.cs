@@ -65,6 +65,41 @@ namespace NReco.Data.Tests
 				)
 			);
 
+			// placeholder syntax @(name)
+			Assert.Equal(
+				"@(AAA",
+				new StringTemplate(
+					"@(AAA").FormatTemplate(
+					new Dictionary<string, object>() {{"AAA", "BBB"}}
+				)
+			);
+			Assert.Equal(
+				"BBB",
+				new StringTemplate(
+					"@(AAA)").FormatTemplate(
+					new Dictionary<string, object>() { { "AAA", "BBB" } }
+				)
+			);
+			Assert.Equal(
+				"AAA_BBB",
+				new StringTemplate(
+					"@(123)_@aaa").FormatTemplate(
+					new Dictionary<string, object>() {
+						{"123", "AAA"},
+						{"aaa", "BBB"}
+					}
+				)
+			);
+			Assert.Equal(
+				" _B_",
+				new StringTemplate(
+					" @(A)[_{0}_]").FormatTemplate(
+					new Dictionary<string, object>() {
+						{"A", "B"}
+					}
+				)
+			);
+
 		}
 	}
 }
