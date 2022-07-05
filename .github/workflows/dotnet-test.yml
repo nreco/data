@@ -19,7 +19,9 @@ jobs:
         dotnet-version: 3.1.x
     - name: Restore dependencies
       run: dotnet restore src
-    - name: Build
-      run: dotnet build src --no-restore
+    - name: Build Lib
+      run: dotnet build src/NReco.Data -property:TargetFrameworks=netstandard2.0 --no-restore
+    - name: Build Tests
+      run: dotnet build src/NReco.Data.Tests --no-restore      
     - name: Test
-      run: dotnet test src --no-build --verbosity normal
+      run: dotnet test src/NReco.Data.Tests --no-build --verbosity normal
