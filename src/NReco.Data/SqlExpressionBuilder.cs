@@ -41,14 +41,15 @@ namespace NReco.Data
 		public virtual string BuildExpression(QNode node) {
 			if (node==null) return null;
 
-			if (node is QRawSqlNode)
-				return ((QRawSqlNode)node).SqlText;
-			if (node is QGroupNode)
-				return BuildGroup( (QGroupNode)node );
-			if (node is QConditionNode)
-				return BuildCondition( (QConditionNode)node );
-			if (node is QNegationNode)
-				return BuildNegation( (QNegationNode)node );
+			if (node is QRawSqlNode qRawSql) {
+				return qRawSql.GetSqlText( (o) => BuildValue(new QConst(o)) );
+			}
+			if (node is QGroupNode qGrp)
+				return BuildGroup(qGrp);
+			if (node is QConditionNode qCnd)
+				return BuildCondition(qCnd);
+			if (node is QNegationNode qNot)
+				return BuildNegation(qNot);
 			
 			throw new ArgumentException("Cannot build node with such type", node.GetType().ToString() );
 		}
@@ -153,9 +154,10 @@ namespace NReco.Data
 			
 			if (value is QConst qConst)
 				return BuildValue(qConst);
-			
-			if (value is QRawSql)
-				return ((QRawSql)value).SqlText;
+
+			if (value is QRawSql qRawSql) {
+				return qRawSql.GetSqlText( (o) => BuildValue(new QConst(o)) );
+			}
 
 			throw new NotSupportedException( "Unknown query value: "+ value.GetType().ToString() );
 		}
@@ -167,7 +169,10 @@ namespace NReco.Data
 
 			if (constValue is string)
 				return BuildValue( (string)constValue );
-									
+
+			if (constValue is DateTime dt)
+				return BuildValue( dt.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) );
+
 			return Convert.ToString(constValue, System.Globalization.CultureInfo.InvariantCulture);
 		}
 		

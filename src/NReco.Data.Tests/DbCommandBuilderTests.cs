@@ -126,13 +126,31 @@ namespace NReco.Data.Tests {
 			masterSQL = "SELECT name,sum(qty) as qty_sum FROM accounts WHERE active=@p0 GROUP BY name";
 			Assert.Equal(masterSQL, cmd.CommandText);
 
+
+			// SELECT RAW SQL
+			cmd = cmdGenerator.GetSelectCommand(
+					new Query("accounts", new QRawSqlNode("1=2")));
+			masterSQL = "SELECT * FROM accounts WHERE 1=2";
+			Assert.Equal(masterSQL, cmd.CommandText);
+			cmd = cmdGenerator.GetSelectCommand(
+					new Query("accounts", new QRawSqlNode("CUSTOM_FUNC({0},{1})", new object[] { 1, 2 }) ));
+			masterSQL = "SELECT * FROM accounts WHERE CUSTOM_FUNC(@p0,@p1)";
+			Assert.Equal(masterSQL, cmd.CommandText);
+			cmd = cmdGenerator.GetSelectCommand(
+					new Query("accounts", (QField)"id" == new QRawSql("1") ));
+			masterSQL = "SELECT * FROM accounts WHERE id=1";
+			Assert.Equal(masterSQL, cmd.CommandText);
+			cmd = cmdGenerator.GetSelectCommand(
+					new Query("accounts", (QField)"id" == new QRawSql("FUNC({0})", new object[] { 1 })));
+			masterSQL = "SELECT * FROM accounts WHERE id=FUNC(@p0)";
+			Assert.Equal(masterSQL, cmd.CommandText);
+
 			var testData = new Dictionary<string,object> {
 				{"name", "Test" },
 				{"age", 20 },
 				{"weight", 75.6 },
 				{"type", "staff" }
 			};
-
 
 			// INSERT TEST
 			cmd = cmdGenerator.GetInsertCommand( "test", testData );
