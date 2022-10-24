@@ -27,10 +27,15 @@ namespace NReco.Data {
 	/// <remarks>
 	/// StringTemplate replaces all tokens started with '@' (token name should have only aphanumeric or '_-' chars). 
 	/// Token processing can be avoided by specifying @@ before any alphanumeric charachter, for example: <code>@@Test</code> 
-	/// (result: <code>@Test</code>). Special symbols used for formatting syntax ('@',']',';') can be escaped in the following way:
+	/// (result: <code>@Test</code>). Special symbols used for formatting syntax ('@', '[', ']',';', '{', '}') can be escaped in the following way:
 	/// <list>
-	/// <item>\] or ]] (] symbol)</item>
-	/// <item>\; or ;; (; symbol)</item>
+	/// <item>\; or ;; = ;</item>
+	/// <item>\] or ]] = ]</item>
+	/// <item>\[ = [</item>
+	/// <item>\{ or {{ = {</item>  
+	/// <item>\} or }} = }</item>  	 
+	/// <item>\@ = @</item>  
+	/// <item>\\ = \</item> 
 	/// </list>
 	/// </remarks>
 	/// <example>
@@ -55,6 +60,11 @@ namespace NReco.Data {
 		/// Get or set flag that determines replacement behaviour when token is not defined (true by default)
 		/// </summary>
 		public bool ReplaceMissedTokens { get;set; }
+
+		/// <summary>
+		/// Determines whether to replace nested tokens (like <code>@token1[ @token2={0} ]</code> ). 
+		/// </summary>
+		public bool ReplaceNestedTokens { get; set; } = false;
 
 		public StringTemplate(string tpl) {
 			Template = tpl;
@@ -85,12 +95,12 @@ namespace NReco.Data {
 			string tpl = Template;
 			for (int i = 0; i < RecursionLevel; i++) {
 				sb.Clear();
-				if (ReplaceTokens(tpl, valueHandler, sb) == 0)
-					break;
+				var replacedCount = ReplaceTokens(tpl, valueHandler, sb);
 				tpl = sb.ToString();
+				if (replacedCount == 0)
+					break;
 			}
-
-			return sb.ToString();
+			return tpl;
 		}
 
 		protected int ReplaceTokens(string tpl, Func<string,TokenResult> valueHandler, StringBuilder sb) {
@@ -102,36 +112,10 @@ namespace NReco.Data {
 					int endPos;
 					var name = ReadName(tpl, pos + 1, out endPos);
 					if (name != null) {
-						TokenResult tokenRes;
-						try {
-							tokenRes = valueHandler(name);
-						} catch (Exception ex) {
-							throw new Exception(String.Format("Evaluation of token {0} at position {1} failed: {2}",
-								name, pos, ex.Message), ex);
-						}
-						if (ReplaceMissedTokens || tokenRes.Defined) {
-							object callRes = tokenRes.Value;
-							string[] formatOptions;
-							try {
-								formatOptions = ReadFormatOptions(tpl, endPos, out endPos);
-							} catch (Exception ex) {
-								throw new Exception(String.Format("Parse error (format options of token {0}) at {1}: {2}",
-									name, pos, ex.Message), ex);
-							}
-							if (tokenRes.Applicable) {
-								var fmtNotEmpty = formatOptions != null && formatOptions.Length > 0 ? formatOptions[0] : "{0}";
-								var fmtEmpty = formatOptions != null && formatOptions.Length > 1 ? formatOptions[1] : "";
-								try {
-									sb.Append(callRes != null && Convert.ToString(callRes) != String.Empty ?
-											String.Format(fmtNotEmpty, callRes) : String.Format(fmtEmpty, callRes)
-									);
-								} catch (Exception ex) {
-									throw new Exception(String.Format("Format of token {0} at position {1} failed: {2}",
-										name, pos, ex.Message), ex);
-								}
-							}
+						var tokenValue = resolveTokenValue(name, nested:false, endPos, out endPos);
+						if (tokenValue!=null) {
+							sb.Append(tokenValue);
 							pos = endPos;
-							matchedTokensCount++;
 							continue;
 						}
 					} else {
@@ -145,9 +129,89 @@ namespace NReco.Data {
 				pos++;
 			}
 			return matchedTokensCount;
+
+			string resolveTokenValue(string name, bool nested, int startPos, out int endPos) {
+				TokenResult tokenRes;
+				try {
+					tokenRes = valueHandler(name);
+				} catch (Exception ex) {
+					throw new Exception(String.Format("Evaluation of token {0} at position {1} failed: {2}",
+						name, pos, ex.Message), ex);
+				}
+				if (ReplaceMissedTokens || tokenRes.Defined) {
+					object callRes = tokenRes.Value;
+					string[] formatOptions;
+					string tokenValue = String.Empty;
+					try {
+						formatOptions = ReadFormatOptions(tpl, nested, startPos, out endPos, resolveTokenValue);
+					} catch (Exception ex) {
+						throw new Exception(String.Format("Parse error (format options of token {0}) at {1}: {2}",
+							name, pos, ex.Message), ex);
+					}
+					if (tokenRes.Applicable) {
+						var fmtNotEmpty = formatOptions != null && formatOptions.Length > 0 ? formatOptions[0] : "{0}";
+						var fmtEmpty = formatOptions != null && formatOptions.Length > 1 ? formatOptions[1] : "";
+						try {
+							tokenValue = callRes != null && Convert.ToString(callRes) != String.Empty ?
+									FormatToken(fmtNotEmpty, callRes) : FormatToken(fmtEmpty, callRes);
+						} catch (Exception ex) {
+							throw new Exception(String.Format("Format of token {0} at position {1} failed: {2}",
+								name, pos, ex.Message), ex);
+						}
+					}
+					matchedTokensCount++;
+					if (nested) {
+						// this is nested token and resolved value will be parsed
+						// by String.Format in the 'parent' token.
+						// If nested token format returns '{' or '}' they should be escaped 
+						tokenValue = escapeFormatBrackets(tokenValue);
+					}
+					return tokenValue;
+				}
+				endPos = startPos;
+				return null;
+			}
+
 		}
 
-		protected string[] ReadFormatOptions(string s, int start, out int newStart) {
+		protected virtual string FormatToken(string fmt, object firstArg) {
+			return String.Format(fmt, firstArg);
+		}
+
+		bool isDoubleChar(char c, string s, int pos) {
+			return (s[pos] == c) && (pos + 1) < s.Length && s[pos + 1] == c;
+		}
+
+		private delegate string ResolveTokenValue(string name, bool nested, int startPos, out int endPos);
+
+		bool isBackslashEscapedChar(char c) {
+			switch (c) {
+				case ';':
+				case ']':
+				case '[':
+				case '\\':
+				case '@':
+				case '{':
+				case '}':
+					return true;
+			}
+			return false;
+		}
+
+		string escapeFormatBrackets(string s) {
+			var sb = new StringBuilder(s.Length + 10);
+			char c;
+			for (var i = 0; i < s.Length; i++) {
+				c = s[i];
+				if (c=='{' || c=='}') {
+					sb.Append(c); // double
+				}
+				sb.Append(c);
+			}
+			return sb.ToString();
+		}
+
+		private string[] ReadFormatOptions(string s, bool nested, int start, out int newStart, ResolveTokenValue resolveNestedTokenValue ) {
 			newStart = start;
 			if (start >= s.Length || s[start] != '[')
 				return null;
@@ -155,29 +219,49 @@ namespace NReco.Data {
 			var opts = new List<string>();
 			var pSb = new StringBuilder();
 			while (start < s.Length) {
-				var isEscapedChar = 
-					( (s[start] == '\\') && (start + 1) < s.Length && (s[start+1]==';' || s[start+1]==']') )
-					|
-					((s[start] == ';') && (start + 1) < s.Length && s[start + 1] == ';')
-					|
-					((s[start] == ']') && (start + 1) < s.Length && s[start + 1] == ']');
+				var isEscapedChar =
+					((s[start] == '\\') && (start + 1) < s.Length && isBackslashEscapedChar(s[start + 1]))
+					||
+					isDoubleChar(';', s, start)
+					||
+					(isDoubleChar(']', s, start) && !nested)  // double-escape doesn't work inside nested b/c this can be closing braket of outer token
+					||
+					(ReplaceNestedTokens && isDoubleChar('@', s, start));
 				if (isEscapedChar) {
 					// process escaped special char
-					pSb.Append(s[start+1]);
+					var escapedChar = s[start + 1];
+					pSb.Append(escapedChar);
+					if (escapedChar == '{' || escapedChar == '}') {
+						// if this is escaped curved bracket let's keep it as escaped
+						// for String.Format (doubled)
+						pSb.Append(escapedChar);
+					}
 					start++;
 				} else if (s[start] == ']') {
 					break;
 				} else if (s[start] == ';') {
 					opts.Add(pSb.ToString());
 					pSb.Clear();
+				} else if (ReplaceNestedTokens && s[start]=='@') {
+					// nested token
+					var nestedTokenName = ReadName(s, start + 1, out var endPos);
+					if (nestedTokenName!=null) {
+						var nestedTokenValue = resolveNestedTokenValue(nestedTokenName, nested:true, endPos, out endPos);
+						if (nestedTokenValue!=null) {
+							pSb.Append(nestedTokenValue);
+							start = endPos;
+							continue;
+						}
+					}
+					pSb.Append(s[start]); // not a nested token, handle as a usual char
 				} else {
 					pSb.Append(s[start]);
 				}
 				start++;
 			}
 			opts.Add(pSb.ToString());
-			if (s[start] != ']')
-				throw new FormatException("Invalid format options");
+			if (start>=s.Length || s[start] != ']')
+				throw new FormatException("Invalid format options (no closing ']')");
 			if (opts.Count > 2)
 				throw new FormatException("Too many format options");
 			newStart = start + 1;

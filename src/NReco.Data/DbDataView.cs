@@ -52,8 +52,14 @@ namespace NReco.Data {
 		/// </remarks>
 		public IDictionary<string,string> FieldMapping { get; set; }
 
+		Func<string, StringTemplate> CreateStringTemplate;
+
 		public DbDataView(string selectTemplate) {
 			SelectTemplate = selectTemplate;
+		}
+
+		public DbDataView(string selectTemplate, Func<string, StringTemplate> createStringTemplate) : this(selectTemplate) {
+			CreateStringTemplate = createStringTemplate;
 		}
 
 		/// <summary>
@@ -71,7 +77,7 @@ namespace NReco.Data {
 			string whereExpression = BuildWhere(query, sqlBuilder);
 			var tblName = sqlBuilder.BuildTableName(query.Table);
 
-			var selectTpl = new StringTemplate(SelectTemplate);
+			var selectTpl = CreateStringTemplate!=null ? CreateStringTemplate(SelectTemplate) : new StringTemplate(SelectTemplate);
 			return selectTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult( tblName );

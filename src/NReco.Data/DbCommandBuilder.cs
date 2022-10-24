@@ -109,6 +109,8 @@ namespace NReco.Data
 		/// </summary>
 		public IDictionary<string,DbDataView> Views { get; set; }
 
+		Func<string, StringTemplate> _createStringTemplate;
+
 		/// <summary>
 		/// Initializes a new instance of the DbCommandBuilder.
 		/// </summary>
@@ -116,6 +118,17 @@ namespace NReco.Data
 		public DbCommandBuilder(IDbFactory dbFactory) {
 			DbFactory = dbFactory;
 			Views = new Dictionary<string,DbDataView>();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the DbCommandBuilder with the specified StringTemplate factory method.
+		/// </summary>
+		/// <param name="dbFactory">DB provider-specific factory implementation</param>
+		/// <param name="createStringTemplate">StringTemplate factory method</param>
+		public DbCommandBuilder(IDbFactory dbFactory, Func<string, StringTemplate> createStringTemplate) {
+			DbFactory = dbFactory;
+			Views = new Dictionary<string, DbDataView>();
+			_createStringTemplate = createStringTemplate;
 		}
 
 		protected ISqlExpressionBuilder GetSqlBuilder(IDbCommand cmd) {
@@ -153,7 +166,7 @@ namespace NReco.Data
 				if (defaultSelectView!=null && defaultSelectView.SelectTemplate == SelectTemplate)
 					view = defaultSelectView;
 				else
-					view = defaultSelectView = new DbDataView(SelectTemplate);
+					view = defaultSelectView = new DbDataView(SelectTemplate, CreateStringTemplate);
 			}
 			return view.FormatSelectSql(query,sqlBuilder,isSubquery);
 		}
@@ -171,7 +184,7 @@ namespace NReco.Data
 			var whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
 			var tblName = dbSqlBuilder.BuildTableName( new QTable(query.Table.Name, null) );
 
-			var deleteTpl = new StringTemplate(DeleteTemplate);
+			var deleteTpl = CreateStringTemplate(DeleteTemplate);
 			SetCommandText(cmd, deleteTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(tblName);
@@ -209,7 +222,7 @@ namespace NReco.Data
 			string whereExpression = dbSqlBuilder.BuildExpression( query.Condition );
 			var tblName = dbSqlBuilder.BuildTableName( new QTable(query.Table.Name, null) );
 
-			var updateTpl = new StringTemplate(UpdateTemplate);
+			var updateTpl = CreateStringTemplate(UpdateTemplate);
 			SetCommandText(cmd, updateTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(tblName);
@@ -249,7 +262,7 @@ namespace NReco.Data
 			var colStr = columns.ToString();
 			var valStr = values.ToString();
 
-			var insertTpl = new StringTemplate(InsertTemplate);
+			var insertTpl = CreateStringTemplate(InsertTemplate);
 			SetCommandText(cmd, insertTpl.FormatTemplate( (varName) => {
 				switch (varName) {
 					case "table": return new StringTemplate.TokenResult(tblName);
@@ -262,7 +275,11 @@ namespace NReco.Data
 			return cmd;
 		}
 
-		
+		StringTemplate CreateStringTemplate(string tpl) {
+			if (_createStringTemplate != null)
+				return _createStringTemplate(tpl);
+			return new StringTemplate(tpl);
+		}
 
 	}
 }
