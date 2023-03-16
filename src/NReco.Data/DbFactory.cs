@@ -67,7 +67,7 @@ namespace NReco.Data {
 			return cmd;
 		}
 
-		public IDbConnection CreateConnection() {
+		public virtual IDbConnection CreateConnection() {
 			return DbPrvFactory.CreateConnection();
 		}
 
