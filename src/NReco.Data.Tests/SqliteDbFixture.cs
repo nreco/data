@@ -70,6 +70,7 @@ namespace NReco.Data.Tests
 		}
 
 		public void Dispose() {
+			SqliteConnection.ClearPool(DbConnection);
 			DbConnection.Dispose();
 			if (File.Exists(DbFileName))
 				File.Delete(DbFileName);
