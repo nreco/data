@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="0.66.0" />
     <PackageReference Include="NReco.Data" Version="1.1.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
 </Project>
