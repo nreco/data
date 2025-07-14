@@ -85,8 +85,12 @@ namespace NReco.Data.Tests
 			@"SELECT u.[User ID] FROM [company users] u",
 			@"SELECT name FROM users WHERE ((id<>@p0) And (id<>@p1)) Or (NOT(id=@p2))",
 			@"SELECT name FROM users WHERE (NOT(id=@p0)) And (id<>@p1)",
-	};
-		
+		};
+
+		string[] relExInvalidSyntaxSamples = new string[] {
+			"users[id"
+		};
+
 		[Fact]
 		public void test_Parse() {
 			var relExParser = new RelexParser();
@@ -128,9 +132,10 @@ namespace NReco.Data.Tests
 			Assert.Equal(1, complexQ.Fields.Length);
 			Assert.Equal(3, complexQ.Sort.Length);
 
-			Assert.Throws<RelexParseException>(() => {
-				relExParser.Parse("users[id");
-			});
+			foreach (var invalidRelex in relExInvalidSyntaxSamples)
+				Assert.Throws<RelexParseException>(() => {
+					relExParser.Parse(invalidRelex);
+				});
 		}
 
 		[Fact]
