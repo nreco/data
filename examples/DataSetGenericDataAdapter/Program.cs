@@ -65,7 +65,7 @@ namespace DataSetGenericDataAdapter
 		static void GenericDataAdapterForMySql() {
 			Console.WriteLine("Mysql database (sample server, may respond slowly)");
 
-			var dbFactory = new DbFactory(MySql.Data.MySqlClient.MySqlClientFactory.Instance) {
+			var dbFactory = new DbFactory(MySqlConnector.MySqlConnectorFactory.Instance) {
 				LastInsertIdSelectText = "SELECT LAST_INSERT_ID()",
 				IdentifierFormat = "`{0}`"
 			};

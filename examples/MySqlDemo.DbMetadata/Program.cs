@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 using NReco.Data;
 
@@ -28,7 +28,7 @@ namespace MySqlDemo.DbMetadata {
 				if (_dbAdapter == null) {
 					var sqlDbPath = "Server=db4free.net;Database=nreco_sampledb;Uid=nreco_sampledb;Pwd=HRt5UbVD;";
 
-					var dbFactory = new DbFactory(MySqlClientFactory.Instance) {
+					var dbFactory = new DbFactory(MySqlConnector.MySqlConnectorFactory.Instance) {
 						LastInsertIdSelectText = "SELECT LAST_INSERT_ID()"
 					};
 					var dbConnection = dbFactory.CreateConnection();
