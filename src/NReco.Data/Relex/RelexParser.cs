@@ -240,6 +240,10 @@ namespace NReco.Data.Relex
 			if (String.IsNullOrEmpty(relExCondition))
 				return null;
 			QNode node = ParseConditionGroup(relExCondition, 0, out endIdx);
+			var stopLexemType = GetLexemType(relExCondition, endIdx, out var stopEndIdx);
+			if (stopLexemType!=LexemType.Stop)
+				throw new RelexParseException(
+					String.Format("Invalid syntax (position: {0}, expression: {1})", endIdx, relExCondition));
 			return node;
 		}
 		

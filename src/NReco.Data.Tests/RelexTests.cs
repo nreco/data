@@ -88,7 +88,14 @@ namespace NReco.Data.Tests
 		};
 
 		string[] relExInvalidSyntaxSamples = new string[] {
-			"users[id"
+			"users[id",
+			"1 and 2",
+			"users(a=1 andd b=2)[*]"
+		};
+
+		string[] relExConditionInvalidSyntaxSamples = new string[] {
+			"1 and ",
+			"a=1 andd b=2"
 		};
 
 		[Fact]
@@ -136,6 +143,11 @@ namespace NReco.Data.Tests
 				Assert.Throws<RelexParseException>(() => {
 					relExParser.Parse(invalidRelex);
 				});
+			foreach (var invalidRelexCnd in relExConditionInvalidSyntaxSamples)
+				Assert.Throws<RelexParseException>(() => {
+					relExParser.ParseCondition(invalidRelexCnd);
+				});
+			
 		}
 
 		[Fact]
