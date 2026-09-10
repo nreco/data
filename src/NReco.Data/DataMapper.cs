@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 /*
  * NReco Data library (http://www.nrecosite.com/)
  * Copyright 2016 Vitaliy Fedorchenko
@@ -45,25 +45,25 @@ namespace NReco.Data {
 			var cols = new List<ColumnMapping>();
 			foreach (var prop in t.GetProperties()) {
 				var metadata = CheckSchemaAttributes(prop.GetCustomAttributes());
-				if (metadata.Item3) // not mapped
+				if (metadata.IsNotMapped)
 					continue; 
 				var colMapping = new ColumnMapping( 
-					metadata.Item1 ?? prop.Name, t, prop.Name, prop.PropertyType, 
+					metadata.ColumnName ?? prop.Name, t, prop.Name, prop.PropertyType, 
 					prop.CanRead, prop.CanWrite,
-					metadata.Item4, metadata.Item5, metadata.Item2);
-				if (metadata.Item2) // is key
+					metadata.IsDbGenerated, metadata.IsIdentity, metadata.IsKey, metadata.MaxLength);
+				if (metadata.IsKey)
 					keyCols.Add(colMapping);
 				cols.Add(colMapping);
 			}
 			foreach (var fld in t.GetFields()) {
 				var metadata = CheckSchemaAttributes(fld.GetCustomAttributes());
-				if (metadata.Item3) // not mapped
+				if (metadata.IsNotMapped)
 					continue; 
 				var colMapping = new ColumnMapping( 
-					metadata.Item1 ?? fld.Name, t, fld.Name, fld.FieldType, 
+					metadata.ColumnName ?? fld.Name, t, fld.Name, fld.FieldType, 
 					true, true,
-					metadata.Item4, metadata.Item5, metadata.Item2);
-				if (metadata.Item2) // is key
+					metadata.IsDbGenerated, metadata.IsIdentity, metadata.IsKey, metadata.MaxLength);
+				if (metadata.IsKey)
 					keyCols.Add(colMapping);
 				cols.Add(colMapping);
 			}
@@ -81,12 +81,30 @@ namespace NReco.Data {
 			return schema;
 		}
 
-		Tuple<string,bool,bool,bool,bool> CheckSchemaAttributes(IEnumerable<Attribute> attrs) {
+		class SchemaAttributeMetadata {
+			internal readonly string ColumnName;
+			internal readonly bool IsKey;
+			internal readonly bool IsNotMapped;
+			internal readonly bool IsDbGenerated;
+			internal readonly bool IsIdentity;
+			internal readonly int? MaxLength;
+			internal SchemaAttributeMetadata(string columnName, bool isKey, bool isNotMapped, bool isDbGenerated, bool isIdentity, int? maxLength) {
+				ColumnName = columnName;
+				IsKey = isKey;
+				IsNotMapped = isNotMapped;
+				IsDbGenerated = isDbGenerated;
+				IsIdentity = isIdentity;
+				MaxLength = maxLength;
+			}
+		}
+
+		SchemaAttributeMetadata CheckSchemaAttributes(IEnumerable<Attribute> attrs) {
 			bool isNotMapped = false;
 			bool isKey = false;
 			bool isDbGenerated = false;
 			bool isIdentity = false;
 			string colName = null;
+			int? maxLength = null;
 			foreach (var attr in attrs) {
 				if (attr is NotMappedAttribute) {
 					isNotMapped = true;
@@ -101,9 +119,12 @@ namespace NReco.Data {
 					isDbGenerated = dbGenAttr.DatabaseGeneratedOption != DatabaseGeneratedOption.None;
 					if (dbGenAttr.DatabaseGeneratedOption==DatabaseGeneratedOption.Identity)
 						isIdentity = true;
+				} else if (attr is MaxLengthAttribute) {
+					var maxLenAttr = (MaxLengthAttribute)attr;
+					maxLength = maxLenAttr.Length;
 				}
 			}
-			return new Tuple<string,bool,bool,bool,bool>(colName, isKey, isNotMapped, isDbGenerated, isIdentity);
+			return new SchemaAttributeMetadata(colName, isKey, isNotMapped, isDbGenerated, isIdentity, maxLength);
 		}
 
 		internal void MapTo(IDataRecord record, object o, Type type, PocoModelSchema schema) {
@@ -187,6 +208,8 @@ namespace NReco.Data {
 
 			internal readonly bool IsKey;
 
+			internal readonly int? MaxLength;
+
 			internal object DefaultValue;
 
 			readonly Type ConvertToType;
@@ -196,12 +219,13 @@ namespace NReco.Data {
 					string colName, Type t, 
 					string propOrFieldName, Type propOrFieldType, 
 					bool canRead, bool canWrite,
-					bool isReadOnly, bool isIdentity, bool isKey) {
+					bool isReadOnly, bool isIdentity, bool isKey, int? maxLength) {
 				ColumnName = colName;
 				ValueType = propOrFieldType;
 				IsReadOnly = isReadOnly;
 				IsIdentity = isIdentity;
 				IsKey = isKey;
+				MaxLength = maxLength;
 
 				DefaultValue = null;
 				if (ValueType.IsValueType)

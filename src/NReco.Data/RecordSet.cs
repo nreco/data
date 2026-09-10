@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 /*
  * NReco Data library (http://www.nrecosite.com/)
  * Copyright 2016 Vitaliy Fedorchenko
@@ -296,7 +296,8 @@ namespace NReco.Data {
 				var modelCol = schema.Columns[i];
 				rsCols[i] = new Column(modelCol.ColumnName, modelCol.ValueType) {
 					AutoIncrement = modelCol.IsIdentity,
-					ReadOnly = modelCol.IsReadOnly
+					ReadOnly = modelCol.IsReadOnly,
+					MaxLength = modelCol.MaxLength
 				};
 				if (modelCol.IsKey)
 					pkCols.Add(rsCols[i]);
@@ -375,6 +376,11 @@ namespace NReco.Data {
 			/// Gets or sets a value that indicates whether the column allows for changes when committed to data source.
 			/// </summary>
 			public bool ReadOnly { get; set; } = false;
+
+			/// <summary>
+			/// Gets or sets the maximum length of string data allowed in the column.
+			/// </summary>
+			public int? MaxLength { get; set; }
 
 			public Column(string name) {
 				Name = name;

@@ -167,6 +167,7 @@ namespace NReco.Data.Tests
 			Assert.True(rs1.PrimaryKey[0].ReadOnly );   
 			
 			Assert.Equal("first_name", rs1.Columns[1].Name );
+			Assert.Equal(100, rs1.Columns[1].MaxLength );
 			
 			var rs2 = RecordSet.FromModel( new PersonModel() { Id = 9, FirstName = "John" }, RecordSet.RowState.Modified );
 			Assert.Equal(1, rs2.Count);
@@ -185,6 +186,7 @@ namespace NReco.Data.Tests
 			public int? Id { get; set; }
 			
 			[Column("first_name")]
+			[MaxLength(100)]
 			public string FirstName { get; set; }
 
 			[Column("last_name")]
